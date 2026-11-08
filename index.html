@@ -1988,7 +1988,7 @@ SHEETS.auth = function(){
       btn.disabled = true; btn.textContent = 'Sending…';
       try { const r = await S.sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname } });
         if (r.error) throw r.error; msg.innerHTML = '<b>Check your inbox.</b> We sent a sign-in link to ' + esc(em) + '. It can take a minute; check spam too.'; btn.textContent = 'Link sent';
-      } catch (err) { const m = String(err && err.message || ''); msg.textContent = /rate|limit|seconds/i.test(m) ? 'Too many sign-in emails right now. Wait a few minutes and try again.' : 'Couldn’t send the email: ' + m; btn.disabled = false; btn.textContent = 'Email me a sign-in link'; }
+      } catch (err) { const m = String(err && err.message || ''); msg.textContent = /not.?authori[sz]ed/i.test(m) || (err && err.code === 'email_address_not_authorized') ? 'Sign-up emails aren’t switched on for new players yet. Ask the league organiser to finish the email setup.' : /rate|limit|seconds/i.test(m) ? 'Too many sign-in emails right now. Wait a few minutes and try again.' : 'Couldn’t send the email: ' + m; btn.disabled = false; btn.textContent = 'Email me a sign-in link'; }
     }); } };
 };
 
