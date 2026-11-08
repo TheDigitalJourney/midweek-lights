@@ -19,4 +19,6 @@ A static site (no build step) served by GitHub Pages. Fantasy accounts, teams an
 
 Match data comes from public match reports (ESPN, UEFA.com and others; see the sources listed in the app). Position maps are built from official starting line-ups weighted by minutes played; they are not ball-tracking heat maps. `data.js` is updated after each matchday.
 
+Club crests in `crests/` are trademarks of their respective clubs, used here only to identify the teams. They were taken from each club's Wikipedia page. If you represent a club and want a crest removed, open an issue.
+
 *Unofficial fan project. Not affiliated with UEFA or any club.*
