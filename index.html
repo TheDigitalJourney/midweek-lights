@@ -84,6 +84,9 @@ h1,h2,h3{margin:0}
 .auth{display:flex;flex-direction:column;gap:12px;max-width:440px}
 .auth label{font:700 12px/1 var(--ff-data);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .auth p{margin:0;line-height:1.5}
+.btn.g-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1f1f1f;border:1px solid #747775;font-weight:600}
+.btn.g-btn:hover{background:#f2f2f2}
+.auth .or{text-align:center;color:var(--muted);font:600 12px/1 var(--ff-data);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
 .icon-btn{width:40px;height:40px;display:inline-grid;place-items:center;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;flex:none}
 .icon-btn:hover{background:var(--surface)}
 .icon-btn svg{width:20px;height:20px}
@@ -1863,6 +1866,9 @@ document.addEventListener('click', e => {
     case 'player': openSheet('player', id, !!a.dataset.push && !$('#sheet').hidden); break;
     case 'match': openSheet('match', id, !!a.dataset.push && !$('#sheet').hidden); break;
     case 'auth': if (S.sb) openSheet('auth'); break;
+    case 'auth-google': { a.disabled = true; const m = $('#auth-gmsg');
+      S.sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } }).then(r => { if (r && r.error) throw r.error; }).catch(err => { a.disabled = false; if (m) m.textContent = /not enabled|unsupported provider/i.test(String(err && err.message)) ? 'Google sign-in isn’t switched on yet. Try again soon.' : 'Couldn’t start Google sign-in: ' + (err && err.message || 'unknown error'); });
+      break; }
     case 'auth-out': a.disabled = true; a.textContent = 'Signing out…'; S.sb.auth.signOut().finally(() => location.reload()); break;
     case 'goto-fixtures': S.tableTab = 'fixtures'; S.fxMd = +a.dataset.md; store.set('ml.tableTab', 'fixtures'); if (S.route === 'table') renderTable(); else location.hash = '#table'; break;
     case 'table-tab': S.tableTab = a.dataset.tab; store.set('ml.tableTab', S.tableTab); renderTable(); break;
@@ -1981,7 +1987,11 @@ async function initSupabase(){
 SHEETS.auth = function(){
   const u = S.authUser;
   if (u) return { title: 'Account', html: '<div class="auth"><p>Signed in as <b>' + esc(u.email || '') + '</b>.</p><p class="hint">Your XI, leagues and predictions are saved to this account, so they follow you to any device.</p><button class="btn block" type="button" data-act="auth-out" id="auth-out">Sign out</button></div>' };
-  return { title: 'Sign in', focus: '#auth-email', html: '<form class="auth" id="auth-form" novalidate><p>Sign in to save your XI online, create leagues and play friends. We’ll email you a one-time sign-in link, no password needed.</p><label for="auth-email">Email</label><input class="input" id="auth-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required><button class="btn primary block" type="submit" id="auth-send">Email me a sign-in link</button><p class="hint" id="auth-msg" role="status" aria-live="polite"></p><p class="hint">Open the link on this same device. Your email is only used to sign you in; other players see your manager name, never your email.</p></form>',
+  const G_ICON = '<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
+  const cfgA = window.ML_SUPABASE || {}, useEmail = cfgA.emailLogin !== false;
+  const gBlock = '<button class="btn block g-btn" type="button" data-act="auth-google" id="auth-google">' + G_ICON + 'Continue with Google</button><p class="hint" id="auth-gmsg" role="status" aria-live="polite"></p>';
+  if (!useEmail) return { title: 'Sign in', focus: '#auth-google', html: '<div class="auth"><p>Sign in to save your XI online, create leagues and play friends.</p>' + gBlock + '<p class="hint">We only use your Google account to sign you in. Other players see your manager name, never your email.</p></div>' };
+  return { title: 'Sign in', focus: '#auth-email', html: '<form class="auth" id="auth-form" novalidate><p>Sign in to save your XI online, create leagues and play friends.</p>' + gBlock + '<p class="or">or get a sign-in link by email</p><label for="auth-email">Email</label><input class="input" id="auth-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required><button class="btn primary block" type="submit" id="auth-send">Email me a sign-in link</button><p class="hint" id="auth-msg" role="status" aria-live="polite"></p><p class="hint">Open the link on this same device. Your email is only used to sign you in; other players see your manager name, never your email.</p></form>',
     bind(){ const f = $('#auth-form'); if (!f) return; f.addEventListener('submit', async e => { e.preventDefault();
       const em = $('#auth-email').value.trim(), msg = $('#auth-msg'), btn = $('#auth-send');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { msg.textContent = 'Enter a valid email address.'; return; }
