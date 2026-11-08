@@ -29,11 +29,11 @@
   --ff-display:"Big Shoulders Display","Oswald","Arial Narrow",Impact,sans-serif;
   --ff-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --ff-data:"Barlow Semi Condensed","Barlow","Arial Narrow",system-ui,sans-serif;
-  --tabbar-h:64px; --crest-edge:rgba(255,255,255,.55);
+  --tabbar-h:64px; --crest-edge:rgba(255,255,255,.55); --stripe:rgba(140,170,255,.035); --crowd:rgba(160,175,230,.16); --flash:#fff8dc; --glow:rgba(255,209,102,.55);
 }
 @media (prefers-color-scheme: light){
   :root:not([data-theme="dark"]){
-    color-scheme: light; --crest-edge:transparent;
+    color-scheme: light; --crest-edge:transparent; --stripe:rgba(13,40,120,.035); --crowd:rgba(13,20,51,.10); --flash:#ffb300; --glow:rgba(183,121,0,.35);
     --bg:#f3f5fb; --bg-2:#eaeef8; --surface:#ffffff; --surface-2:#eef1f9; --line:#d6dcee; --line-soft:#e6eaf5;
     --fg:#0d1433; --muted:#54608c; --faint:#8790b3;
     --accent:#b77900; --accent-ink:#ffffff; --accent-2:#2a64c9;
@@ -45,7 +45,7 @@
   }
 }
 :root[data-theme="light"]{
-  color-scheme: light; --crest-edge:transparent;
+  color-scheme: light; --crest-edge:transparent; --stripe:rgba(13,40,120,.035); --crowd:rgba(13,20,51,.10); --flash:#ffb300; --glow:rgba(183,121,0,.35);
   --bg:#f3f5fb; --bg-2:#eaeef8; --surface:#ffffff; --surface-2:#eef1f9; --line:#d6dcee; --line-soft:#e6eaf5;
   --fg:#0d1433; --muted:#54608c; --faint:#8790b3;
   --accent:#b77900; --accent-ink:#ffffff; --accent-2:#2a64c9;
@@ -628,6 +628,116 @@ main.wrap{padding-bottom:28px}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
 }
+
+/* ================= match-night motion & graphics ================= */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(ellipse 55% 38% at 8% -6%,var(--beam),transparent 72%),
+  radial-gradient(ellipse 55% 38% at 92% -6%,var(--beam),transparent 72%),
+  repeating-linear-gradient(90deg,var(--stripe) 0 72px,transparent 72px 144px)}
+/* floodlight logo: lamps switch on one by one, then flicker now and then */
+.brand .mark i{animation:lampOn .5s steps(2) both}
+.brand .mark i:nth-child(2){animation-delay:.12s}.brand .mark i:nth-child(3){animation-delay:.24s}
+.brand .mark i:nth-child(4){animation-delay:.36s}.brand .mark i:nth-child(5){animation-delay:.48s}.brand .mark i:nth-child(6){animation-delay:.6s,6s}
+.brand .mark i:nth-child(6){animation-name:lampOn,flicker;animation-duration:.5s,7s;animation-iteration-count:1,infinite}
+@keyframes lampOn{0%{opacity:.15}50%{opacity:1}75%{opacity:.4}100%{opacity:1}}
+@keyframes flicker{0%,96%,100%{opacity:1}97%{opacity:.3}98%{opacity:1}99%{opacity:.5}}
+.brand b{background:linear-gradient(100deg,var(--fg) 40%,var(--accent) 50%,var(--fg) 60%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 6s ease-in-out 1s infinite}
+@keyframes sheen{0%,70%{background-position:100% 0}100%{background-position:-50% 0}}
+/* hero: sweeping floodlight beams, crowd with camera flashes, rolling ball */
+.hero::before{animation:beamL 9s ease-in-out infinite alternate}
+.hero::after{animation:beamR 11s ease-in-out infinite alternate}
+@keyframes beamL{from{transform:rotate(-30deg)}to{transform:rotate(-14deg)}}
+@keyframes beamR{from{transform:rotate(30deg)}to{transform:rotate(16deg)}}
+.crowd{position:absolute;left:0;right:0;top:0;height:30px;pointer-events:none;z-index:-1;opacity:.9;
+  background:radial-gradient(circle at 7px 9px,var(--crowd) 4.2px,transparent 5px) 0 0/14px 13px repeat-x,
+             radial-gradient(circle at 7px 9px,var(--crowd) 4.6px,transparent 5.4px) 7px 9px/14px 13px repeat-x;
+  -webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
+.crowd i{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--flash);box-shadow:0 0 8px 3px var(--flash);opacity:0;animation:camflash 4.2s infinite}
+@keyframes camflash{0%,90%,100%{opacity:0}92%{opacity:1}95%{opacity:0}}
+.hero-ball{position:absolute;left:0;bottom:6px;width:20px;height:20px;pointer-events:none;z-index:2;animation:rollAcross 14s linear 2s infinite both;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35))}
+.hero-ball svg{display:block;width:100%;height:100%;animation:spinBall .9s linear infinite}
+@keyframes rollAcross{0%{transform:translateX(-30px)}55%,100%{transform:translateX(calc(100vw + 30px))}}
+@keyframes spinBall{to{transform:rotate(360deg)}}
+/* view entrance: content rises in, list rows cascade */
+.view.enter>*>*,.view.enter>.home-grid>*>*{animation:riseIn .5s cubic-bezier(.2,.8,.2,1) both}
+.view.enter>*>*:nth-child(2){animation-delay:.05s}.view.enter>*>*:nth-child(3){animation-delay:.1s}.view.enter>*>*:nth-child(4){animation-delay:.15s}.view.enter>*>*:nth-child(n+5){animation-delay:.2s}
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.cascade{animation:rowIn .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 28ms)}
+@keyframes rowIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+.league tbody tr.cascade:nth-child(-n+8) .c-pos{animation:zoneGlow 1.4s ease-out both;animation-delay:calc(var(--i,0) * 28ms + .3s)}
+@keyframes zoneGlow{0%{box-shadow:inset 3px 0 0 var(--zone-r16)}40%{box-shadow:inset 3px 0 0 var(--zone-r16),inset 40px 0 30px -20px color-mix(in srgb,var(--zone-r16) 35%,transparent)}100%{box-shadow:inset 3px 0 0 var(--zone-r16)}}
+/* score cards & crests react */
+.score-card{transition:transform .2s cubic-bezier(.2,.8,.2,1),border-color .2s}
+.score-card:hover{transform:translateY(-3px) rotate(-.6deg);border-color:var(--accent)}
+.crest{transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+button:hover>.crest,.club-btn:hover .crest,.mh-t:hover .crest{transform:scale(1.15) rotate(-6deg)}
+/* countdown digits flip like a stadium scoreboard */
+.cd b.tick{animation:flipIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes flipIn{0%{transform:perspective(200px) rotateX(-90deg);opacity:.2}100%{transform:none;opacity:1}}
+.cd div{position:relative;overflow:hidden}
+.cd div::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:color-mix(in srgb,var(--bg) 70%,transparent)}
+/* nav: active icon bounces like a ball */
+.nav a[aria-current="page"] svg{animation:navBounce .6s cubic-bezier(.3,1.8,.5,1)}
+@keyframes navBounce{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-7px) scale(1.1)}60%{transform:translateY(0) scale(.95,1.05)}100%{transform:none}}
+/* route change: a ball rolls across under the header */
+#route-ball{position:fixed;z-index:70;left:0;width:18px;height:18px;pointer-events:none;opacity:0;top:calc(env(safe-area-inset-top,0px) + 58px)}
+#route-ball svg{width:100%;height:100%;display:block}
+#route-ball.go{animation:routeRoll .8s cubic-bezier(.4,.1,.3,1) both}
+#route-ball.go svg{animation:spinBall .4s linear infinite}
+@keyframes routeRoll{0%{opacity:1;transform:translateX(-24px)}85%{opacity:1}100%{opacity:0;transform:translateX(calc(100vw + 24px))}}
+@media (min-width:900px){#route-ball{top:calc(env(safe-area-inset-top,0px) + 66px)}}
+/* fantasy pitch: players pop onto the pitch, captain armband glows */
+.view.enter .slot,.slot.just{animation:popIn .55s cubic-bezier(.3,1.7,.5,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+.slot.just{animation-delay:0s}
+@keyframes popIn{0%{opacity:0;transform:translateY(10px) scale(.4)}100%{opacity:1;transform:none}}
+.slot .cap{animation:capGlow 2.2s ease-in-out infinite}
+@keyframes capGlow{0%,100%{box-shadow:0 0 0 2px var(--pitch),0 0 0 0 var(--glow)}50%{box-shadow:0 0 0 2px var(--pitch),0 0 0 7px transparent}}
+.slot.empty .shirt{animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.pitch::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--pitch-line);animation:breathe 3s ease-in-out infinite;pointer-events:none}
+/* match centre */
+.sheet.open .mh-s b{animation:scorePop .6s cubic-bezier(.3,1.7,.5,1) .15s both}
+@keyframes scorePop{0%{transform:scale(.4);opacity:0}100%{transform:none;opacity:1}}
+.sheet.open .sb-bar i{animation:barGrow .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + .2s)}
+.sheet.open .sb-bar i:first-child{transform-origin:right}.sheet.open .sb-bar i:last-child{transform-origin:left}
+@keyframes barGrow{from{transform:scaleX(0)}to{transform:none}}
+.sheet.open .tl-row{animation:rowIn .4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 35ms + .1s)}
+.sheet.open .tl-row.a{animation-name:rowInR}
+@keyframes rowInR{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+.tl-row.is-goal .ev-i.goal{animation:spinBall 2.4s linear infinite}
+.sheet.open .pitch-svg .pd{animation:dotIn .5s cubic-bezier(.3,1.7,.5,1) both;animation-delay:calc(var(--i,0) * 30ms + .2s);transform-box:fill-box;transform-origin:center}
+@keyframes dotIn{from{opacity:0;transform:scale(0)}to{opacity:1;transform:none}}
+.sheet.open .shape circle{animation:heatIn 1.2s ease-out both}
+@keyframes heatIn{from{opacity:0}}
+.sheet.open .wdl i{animation:barGrow .9s cubic-bezier(.2,.8,.2,1) .2s both;transform-origin:left}
+.hero-pitch{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.55}
+.hero-pitch g{stroke:color-mix(in srgb,var(--accent-2) 24%,transparent);stroke-dasharray:1;stroke-dashoffset:1;animation:drawLine 2.4s cubic-bezier(.4,0,.2,1) .2s forwards}
+.hero-pitch .spot{fill:color-mix(in srgb,var(--accent) 60%,transparent);animation:breathe 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes drawLine{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.hero-pitch g{stroke-dashoffset:0}}
+/* goal celebration overlay */
+#celebrate{position:fixed;inset:0;z-index:120;display:grid;place-items:center;pointer-events:none;opacity:0;visibility:hidden}
+#celebrate.on{opacity:1;visibility:visible}
+#celebrate canvas{position:absolute;inset:0;width:100%;height:100%}
+#celebrate .net{position:absolute;inset:0;opacity:0;background:
+  repeating-linear-gradient(45deg,color-mix(in srgb,var(--fg) 14%,transparent) 0 1px,transparent 1px 22px),
+  repeating-linear-gradient(-45deg,color-mix(in srgb,var(--fg) 14%,transparent) 0 1px,transparent 1px 22px)}
+#celebrate.on .net{animation:netBulge 1.4s ease-out both}
+@keyframes netBulge{0%{opacity:0;transform:scale(1)}15%{opacity:1;transform:scale(1.08)}35%{transform:scale(.98)}100%{opacity:0;transform:scale(1)}}
+#celebrate .big{position:relative;text-align:center;color:var(--accent);text-shadow:0 6px 30px var(--glow),0 2px 0 rgba(0,0,0,.35)}
+#celebrate .big b{display:block;font:900 clamp(64px,18vw,168px)/.85 var(--ff-display);letter-spacing:.02em;text-transform:uppercase}
+#celebrate .big span{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:999px;background:var(--surface);color:var(--fg);font:700 14px/1.2 var(--ff-data);letter-spacing:.08em;text-transform:uppercase;box-shadow:var(--shadow)}
+#celebrate.on .big b{animation:goalZoom 1.6s cubic-bezier(.2,1.4,.4,1) both}
+#celebrate.on .big span{animation:riseIn .5s .25s both}
+@keyframes goalZoom{0%{transform:scale(.2) rotate(-8deg);opacity:0}25%{transform:scale(1.12) rotate(2deg);opacity:1}35%{transform:scale(.96) rotate(-1deg)}45%,80%{transform:scale(1) rotate(0)}100%{transform:scale(1.05);opacity:0}}
+#celebrate .big span{animation-fill-mode:both}
+#celebrate.on .big{animation:shake .5s .3s 1}
+@keyframes shake{0%,100%{transform:none}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(2px,-1px)}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .hero-ball,#route-ball,#celebrate{display:none!important}
+  .brand b{color:var(--fg);background:none}
+}
 </style>
 
 <div class="shell">
@@ -644,6 +754,7 @@ main.wrap{padding-bottom:28px}
   </nav>
 
   <div class="col">
+    <div id="route-ball" aria-hidden="true"></div><div id="celebrate" aria-hidden="true"><div class="net"></div><canvas id="confetti"></canvas><div class="big"><b id="cel-t">Goal!</b><span id="cel-s"></span></div></div>
     <header class="app-header">
       <div class="wrap hdr">
         <a class="brand" href="#home" aria-label="Midweek Lights home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><b>Midweek Lights</b></a>
@@ -977,6 +1088,7 @@ function exampleRivals(){
 /* ================= toast ================= */
 let toastTimer = null, toastFn = null;
 function toast(msg, actLabel, fn){
+  { const m = String(msg); if (/^Team saved/.test(m)) celebrate('Goal!', 'Team saved'); else if (/^League created/.test(m)) celebrate('Kick-off!', 'League created'); else if (/^Joined /.test(m)) celebrate('You’re in!', m.replace(/^Joined /, '')); else if (/^Predictions saved/.test(m)) celebrate('Locked in!', 'Predictions saved'); }
   const el = $('#toast'), b = $('#toast-act');
   $('#toast-msg').textContent = msg;
   if (actLabel) { b.textContent = actLabel; b.hidden = false; toastFn = fn; } else { b.hidden = true; toastFn = null; }
@@ -1002,7 +1114,7 @@ function renderHome(){
   const dateLine = dates.length > 1 ? fmtDay(dates[0]) + ' & ' + fmtDay(dates[dates.length - 1]) : dates.length ? fmtDay(dates[0]) : '';
   const scorers = D.players.filter(p => p.goals > 0).sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.mins - b.mins).slice(0, 6);
   let h = '<div class="home-grid">';
-  h += '<section class="hero" aria-labelledby="hero-h"><div class="hero-top"><div><div class="kicker">' + (lmd ? 'Matchday ' + lmd + ' · Full time' : 'League phase') + '</div><h1 id="hero-h">' + (lmd ? 'Results' : 'Season ' + esc(D.meta.season)) + '</h1></div><div class="season">League phase<br>' + esc(D.meta.season) + '</div></div>';
+  h += '<section class="hero" aria-labelledby="hero-h"><div class="crowd" aria-hidden="true">' + [6,19,33,47,58,71,84,93].map((x, k) => '<i style="left:' + x + '%;top:' + (k % 2 ? 14 : 5) + 'px;animation-delay:' + (k * 0.53).toFixed(2) + 's"></i>').join('') + '</div><div class="hero-ball" aria-hidden="true">' + BALL_SVG + '</div><svg class="hero-pitch" viewBox="0 0 400 200" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke-width="1.5"><rect x="6" y="6" width="388" height="188" rx="3" pathLength="1"/><line x1="200" y1="6" x2="200" y2="194" pathLength="1"/><circle cx="200" cy="100" r="34" pathLength="1"/><rect x="6" y="52" width="58" height="96" pathLength="1"/><rect x="336" y="52" width="58" height="96" pathLength="1"/><rect x="6" y="78" width="20" height="44" pathLength="1"/><rect x="374" y="78" width="20" height="44" pathLength="1"/><path d="M64 78a26 26 0 0 1 0 44M336 78a26 26 0 0 0 0 44" pathLength="1"/></g><circle cx="200" cy="100" r="3" class="spot"/></svg><div class="hero-top"><div><div class="kicker">' + (lmd ? 'Matchday ' + lmd + ' · Full time' : 'League phase') + '</div><h1 id="hero-h">' + (lmd ? 'Results' : 'Season ' + esc(D.meta.season)) + '</h1></div><div class="season">League phase<br>' + esc(D.meta.season) + '</div></div>';
   if (results.length) {
     h += '<div class="ticker-h"><span class="lbl">' + results.length + ' matches</span><button class="linkbtn" type="button" data-act="goto-fixtures" data-md="' + lmd + '">All fixtures</button></div>';
     h += '<div class="ticker" role="list">' + results.map(scoreCard).join('') + '</div>';
@@ -1054,7 +1166,7 @@ function tickCountdown(){
   const d = Math.floor(ms / 864e5); ms -= d * 864e5; const hh = Math.floor(ms / 36e5); ms -= hh * 36e5; const mm = Math.floor(ms / 6e4); const ss = Math.floor((ms - mm * 6e4) / 1000);
   const pad = n => String(n).padStart(2, '0');
   const html = '<div class="cd" role="timer" aria-label="Kick-off in ' + d + ' days ' + hh + ' hours ' + mm + ' minutes"><div><b>' + d + '</b><span>days</span></div><div><b>' + pad(hh) + '</b><span>hrs</span></div><div><b>' + pad(mm) + '</b><span>min</span></div><div><b>' + pad(ss) + '</b><span>sec</span></div></div>';
-  el.innerHTML = html;
+  el.innerHTML = html; flipCd(el);
 }
 function myRank(){
   const codes = S.mode === 'connecting' ? [] : allMyLeagues();
@@ -1568,7 +1680,7 @@ function paintSheet(focus){
   body.innerHTML = r.html; body.scrollTop = keep;
   if (r.bind) r.bind();
   if (el.hidden) { el.hidden = false; sc.hidden = false; document.documentElement.classList.add('lock'); void el.offsetWidth; el.classList.add('open'); sc.classList.add('open'); }
-  if (focus) setTimeout(() => { const f = r.focus ? $(r.focus) : null; (f || el).focus({ preventScroll: true }); }, 30);
+  if (focus) { sheetMotion(); setTimeout(() => { const f = r.focus ? $(r.focus) : null; (f || el).focus({ preventScroll: true }); }, 30); }
 }
 function closeSheet(){
   const el = $('#sheet'), sc = $('#scrim'); if (el.hidden) return;
@@ -1654,6 +1766,71 @@ function pickerList(i, pos){
   const el = $('#picker-list'); if (!el) return;
   if (!list.length) { el.innerHTML = '<div class="empty"><b>No matches</b>Try another search or club.</div>'; return; }
   el.innerHTML = list.map(({ p, why }) => '<button class="pk-row" type="button" data-act="pick" data-i="' + i + '" data-id="' + esc(p.id) + '"' + (why ? ' disabled aria-disabled="true"' : '') + '>' + crest(p.teamId) + '<span class="who"><span class="nm">' + esc(p.name) + '</span><span class="sub">' + esc(T.get(p.teamId).name) + (why ? ' · <span class="why">' + esc(why) + '</span>' : ' · ' + esc(p.role)) + '</span></span><span class="v">' + price(p.price) + '<small>PRICE</small></span><span class="v">' + p.fp + '<small>PTS</small></span></button>').join('');
+}
+
+/* ================= match-night motion ================= */
+const BALL_SVG = '<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><circle cx="32" cy="32" r="29" fill="#fff" stroke="#0d1433" stroke-width="3"/><path d="M32 20l11 8-4 13H25l-4-13z" fill="#0d1433"/><path d="M32 20V5M43 28l14-5M39 41l8 13M25 41l-8 13M21 28L7 23" stroke="#0d1433" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M24 4l8-1 8 1-8 6zM58 18l3 8-1 7-7-5zM52 54l-6 5-9 2 3-8zM12 59l-9-2-6-5 9-1zM6 33L3 26l3-8 4 10z" fill="#0d1433"/></svg>';
+const RM = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
+function countUp(root){
+  if (RM || document.hidden || !root) return;
+  const els = root.querySelectorAll('.stat b, .c-pts, .sc-row .g, .fz-score b, .mh-s b, .cmp b, .wdl-l b');
+  els.forEach(el => {
+    if (el.children.length) return;
+    const txt = el.textContent.trim(), m = /^(\d{1,4})(%?)$/.exec(txt); if (!m) return;
+    const end = +m[1]; if (end < 2) return; const suf = m[2], t0 = performance.now(), dur = 700 + Math.min(500, end * 3);
+    const step = now => { const k = Math.min(1, (now - t0) / dur), v = Math.round(end * (1 - Math.pow(1 - k, 3))); el.textContent = v + suf; if (k < 1) requestAnimationFrame(step); else el.textContent = txt; };
+    el.textContent = '0' + suf; requestAnimationFrame(step);
+    setTimeout(() => { el.textContent = txt; }, dur + 400);
+  });
+}
+function cascade(root){
+  if (RM || !root) return;
+  const groups = ['.league tbody tr', '.mt-row', '.res-row', '.sq-row', '.pk-row', '.fx', '.news-card, .nc', '.pl-row, .prow-item', '.board tbody tr, .lb-row'];
+  groups.forEach(sel => root.querySelectorAll(sel).forEach((el, i) => { el.style.setProperty('--i', Math.min(i, 24)); el.classList.remove('cascade'); void el.offsetWidth; el.classList.add('cascade'); }));
+  root.querySelectorAll('.slot').forEach((el, i) => el.style.setProperty('--i', i));
+}
+function motionEnter(view){
+  if (RM || !view) return;
+  view.classList.remove('enter'); void view.offsetWidth; view.classList.add('enter');
+  cascade(view); countUp(view);
+  clearTimeout(view._enterT); view._enterT = setTimeout(() => view.classList.remove('enter'), 1400);
+}
+function rollRouteBall(){
+  if (RM) return; const b = document.getElementById('route-ball'); if (!b) return;
+  if (!b.firstChild) b.innerHTML = BALL_SVG;
+  b.classList.remove('go'); void b.offsetWidth; b.classList.add('go');
+}
+function sheetMotion(){
+  if (RM) return; const body = document.getElementById('sheet-body'); if (!body) return;
+  body.querySelectorAll('.tl-row').forEach((el, i) => el.style.setProperty('--i', Math.min(i, 30)));
+  body.querySelectorAll('.sb').forEach((el, i) => el.querySelectorAll('.sb-bar i').forEach(x => x.style.setProperty('--i', i)));
+  body.querySelectorAll('.pitch-svg .pd').forEach((el, i) => el.style.setProperty('--i', i));
+  cascade(body); countUp(body);
+}
+let cdPrev = [];
+function flipCd(el){
+  if (RM) return; const bs = el.querySelectorAll('.cd b'); const now = [...bs].map(b => b.textContent);
+  bs.forEach((b, i) => { if (cdPrev.length && cdPrev[i] !== now[i]) b.classList.add('tick'); }); cdPrev = now;
+}
+/* goal celebration with confetti in your captain's club colours */
+let celT = null;
+function celebrate(title, sub){
+  if (RM) return; const o = document.getElementById('celebrate'); if (!o) return;
+  document.getElementById('cel-t').textContent = title; document.getElementById('cel-s').textContent = sub || '';
+  o.classList.remove('on'); void o.offsetWidth; o.classList.add('on');
+  let cols = ['#ffd166', '#7fb3ff', '#ffffff', '#3ecf8e'];
+  try { const cap = S.draft && S.draft.captain && P.get(S.draft.captain); if (cap) { const t = T.get(cap.teamId); cols = [t.color, t.color2, '#ffd166', '#ffffff']; } } catch (e) {}
+  const cv = document.getElementById('confetti'), ctx = cv.getContext && cv.getContext('2d');
+  if (ctx) {
+    const W = cv.width = innerWidth * (devicePixelRatio || 1), H = cv.height = innerHeight * (devicePixelRatio || 1), d = devicePixelRatio || 1;
+    const parts = Array.from({ length: 140 }, (_, i) => ({ x: W / 2, y: H * .55, vx: (Math.random() - .5) * 26 * d, vy: (-Math.random() * 22 - 8) * d, w: (5 + Math.random() * 7) * d, h: (8 + Math.random() * 10) * d, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[i % cols.length] }));
+    const t0 = performance.now();
+    const frame = now => { const k = (now - t0) / 1800; ctx.clearRect(0, 0, W, H); if (k >= 1) return;
+      parts.forEach(p => { p.vy += .55 * d; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.globalAlpha = Math.max(0, 1 - k * 1.1); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2))); ctx.restore(); });
+      requestAnimationFrame(frame); };
+    requestAnimationFrame(frame);
+  }
+  clearTimeout(celT); celT = setTimeout(() => o.classList.remove('on'), 1700);
 }
 
 /* ================= MATCH CENTRE ================= */
@@ -1880,7 +2057,7 @@ document.addEventListener('click', e => {
     case 'ntag': S.newsTag = a.dataset.tag; renderNews(); break;
     case 'ftab': e.preventDefault(); if (!$('#sheet').hidden) closeSheet(); goFantasy(a.dataset.tab); break;
     case 'slot': { const i = +a.dataset.i; S.picker = { q: '', sort: 'fp', club: '' }; openSheet(S.draft.slots[i] ? 'slot' : 'picker', i); break; }
-    case 'pick': { const i = +a.dataset.i; const p = P.get(id); if (!p || pickBlock(p, i)) return; setSlot(i, id); closeSheet(); rerenderXI(); toast(surname(p.name) + ' in — ' + (11 - squadOf().length ? (11 - squadOf().length) + ' to go' : 'XI complete, don’t forget to save')); break; }
+    case 'pick': { const i = +a.dataset.i; const p = P.get(id); if (!p || pickBlock(p, i)) return; setSlot(i, id); closeSheet(); rerenderXI(); { const sl = document.querySelector('.slot[data-i="' + i + '"]'); if (sl && !RM) { sl.classList.remove('just'); void sl.offsetWidth; sl.classList.add('just'); } } toast(surname(p.name) + ' in — ' + (11 - squadOf().length ? (11 - squadOf().length) + ' to go' : 'XI complete, don’t forget to save')); break; }
     case 'replace': S.picker = { q: '', sort: 'fp', club: '' }; openSheet('picker', +a.dataset.i, true); break;
     case 'captain': { const i = +a.dataset.i, pid = S.draft.slots[i]; S.draft.captain = S.draft.captain === pid ? null : pid; closeSheet(); rerenderXI(); toast(S.draft.captain ? surname(P.get(pid).name) + ' is your captain' : 'Captaincy removed'); break; }
     case 'remove-slot': { const i = +a.dataset.i; setSlot(i, null); closeSheet(); rerenderXI(); break; }
@@ -1914,7 +2091,7 @@ function show(r){
   $$('.nav a[data-route]').forEach(a => { if (a.dataset.route === r) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   if (!$('#sheet').hidden) closeSheet();
   renderRoute();
-  if (changed) window.scrollTo(0, 0);
+  if (changed) { window.scrollTo(0, 0); rollRouteBall(); motionEnter($('#view-' + r)); }
 }
 function renderRoute(){
   if (!D) return;
