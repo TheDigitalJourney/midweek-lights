@@ -1317,6 +1317,105 @@ html.rm *,html.rm *::before,html.rm *::after{animation:none!important;transition
 html.rm .ball-layer,html.rm #route-ball,html.rm .hero-ball{display:none!important}
 html.rm .rv:not(.in){opacity:1;translate:none}
 html.rm .marquee{overflow-x:auto}
+/* ===== moment-based hero ===== */
+html[data-route="home"] #side-cd{display:none}
+.hz{display:flex;flex-direction:column}
+.hz > *{position:relative;z-index:2}
+.hz .kicker{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hero .kinetic.hz-title{font:400 clamp(44px,11cqi,92px)/.9 var(--ff-display);margin:10px 0 0;white-space:normal;letter-spacing:.005em}
+.hz-title .hz-hi{color:var(--lime);text-shadow:0 0 34px rgba(200,255,46,.45)}
+.hz-label{margin:18px 0 8px;font:800 11px/1 var(--ff-body);letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+/* face-off stage */
+.fo{position:relative;margin-top:18px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:20px 10px 18px;border-radius:26px;overflow:hidden;isolation:isolate;
+  background:rgba(12,6,50,.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 30px 60px -30px rgba(10,4,60,.8)}
+.fo-bg{position:absolute;inset:0;z-index:-2}
+.fo-bg i{position:absolute;top:0;bottom:0;width:62%}
+.fo-bg .l{left:-6%;background:linear-gradient(100deg,color-mix(in srgb,var(--ch) 78%,transparent),color-mix(in srgb,var(--ch) 18%,transparent) 70%,transparent);clip-path:polygon(0 0,100% 0,82% 100%,0 100%)}
+.fo-bg .r{right:-6%;background:linear-gradient(260deg,color-mix(in srgb,var(--ca) 78%,transparent),color-mix(in srgb,var(--ca) 18%,transparent) 70%,transparent);clip-path:polygon(18% 0,100% 0,100% 100%,0 100%)}
+.fo-pitch{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.fo-team{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;border:0;background:none;color:#fff;cursor:pointer;padding:4px;border-radius:18px;text-align:center}
+.fo-team:focus-visible{outline:3px solid var(--lime);outline-offset:2px}
+.fo-crest{display:grid;place-items:center;width:clamp(64px,20cqi,84px);height:clamp(64px,20cqi,84px);border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.25),0 18px 34px -12px rgba(0,0,0,.6);transition:transform .5s var(--spring)}
+.fo-team:hover .fo-crest{transform:scale(1.07) rotate(-4deg)}
+.fo-crest .crest{width:64%!important;height:64%!important;box-shadow:none!important;background:none!important;border-radius:0!important}
+.fo-crest .crest img{width:100%;height:100%;object-fit:contain}
+.fo-name{font:400 clamp(15px,4.6cqi,34px)/1.05 var(--ff-display);text-transform:uppercase;letter-spacing:0;text-shadow:0 2px 14px rgba(0,0,0,.35);max-width:100%;overflow-wrap:normal;word-break:normal;hyphens:none}
+.fo-meta{font:800 clamp(9.5px,2.6cqi,11px)/1 var(--ff-body);white-space:nowrap;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.85)}
+.fo-team .form{justify-content:center}
+.fo-mid{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:76px}
+.fo-vs{font:400 clamp(30px,7cqi,58px)/1 var(--ff-display);color:var(--lime);text-shadow:0 0 30px rgba(200,255,46,.5)}
+.fo-time{font:400 clamp(24px,5cqi,40px)/1 var(--ff-display);color:#fff;letter-spacing:.02em}
+.fo-day{font:700 11px/1.3 var(--ff-body);letter-spacing:.06em;color:rgba(255,255,255,.8);text-align:center;max-width:120px}
+.fo-score{border:0;background:none;color:#fff;cursor:pointer;font:400 clamp(42px,10cqi,84px)/1 var(--ff-display);display:flex;align-items:center;gap:6px;text-shadow:0 4px 30px rgba(0,0,0,.35);border-radius:14px}
+.fo-score i{font-style:normal;color:var(--lime)}
+.fo-score:focus-visible{outline:3px solid var(--lime)}
+@container (min-width:620px){.fo{padding:28px 24px 24px;gap:14px}.fo-crest{width:128px;height:128px}.fo-mid{min-width:140px}.fo-day{max-width:170px}}
+/* win/draw/win bar */
+.fo-odds{margin-top:12px}
+.fo-bar{display:flex;height:10px;border-radius:99px;overflow:hidden;gap:3px;background:rgba(255,255,255,.12)}
+.fo-bar i{display:block;min-width:4px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.fo-bar i.d{background:rgba(255,255,255,.45)}
+.fo-bar-l{display:flex;justify-content:space-between;margin-top:7px;font:700 12px/1 var(--ff-body);color:rgba(255,255,255,.85)}
+.fo-bar-l b{font:400 18px/1 var(--ff-display);color:#fff;margin-right:3px;letter-spacing:.02em}
+/* footer row: countdown + buttons */
+.hz-foot{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-top:18px}
+.hz-foot .hero-cd{margin:0}
+.hz-foot .hero-cta{margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.hz-note{display:flex;align-items:center;gap:8px;margin:0;font:600 13px/1.4 var(--ff-body);color:rgba(255,255,255,.85)}
+.hz-note .dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 4px rgba(200,255,46,.25);flex:none}
+/* fixture chips */
+.hz-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:18px -20px 0;padding:2px 20px 4px;scroll-snap-type:x proximity}
+.hz-chips::-webkit-scrollbar{display:none}
+@media (min-width:900px){.hz-chips{margin-inline:-40px;padding-inline:40px}}
+.hz-chip{flex:none;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;padding:9px 12px;border-radius:16px;border:0;cursor:pointer;background:rgba(255,255,255,.13);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:transform .4s var(--spring),background .2s}
+.hz-chip:hover{transform:translateY(-3px);background:rgba(255,255,255,.2)}
+.hz-chip.feat{background:var(--lime);color:#140C3F;box-shadow:0 10px 24px -10px rgba(200,255,46,.8)}
+.hz-chip .tm{font:800 10.5px/1 var(--ff-body);letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.hz-chip .tt{display:flex;align-items:center;gap:6px;font:800 13px/1 var(--ff-body)}
+.hz-chip .tt i{font-style:normal;opacity:.6;font-weight:600}
+.hz-chip .crest.img{box-shadow:none}
+/* live board */
+.lb{display:grid;gap:10px;margin-top:18px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.lb-card{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:16px 14px 26px;border-radius:20px;border:0;cursor:pointer;color:#fff;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--ch) 45%,transparent),rgba(12,6,50,.35) 45%,rgba(12,6,50,.35) 55%,color-mix(in srgb,var(--ca) 45%,transparent));box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);transition:transform .4s var(--spring)}
+.lb-card:hover{transform:translateY(-3px)}
+.lb-card.on{box-shadow:inset 0 0 0 2px #ff5a6e,0 0 30px -8px rgba(255,90,110,.7)}
+.lb-t{display:flex;align-items:center;gap:8px;min-width:0;font:400 20px/1 var(--ff-display);letter-spacing:.02em}
+.lb-t.r{justify-content:flex-end}
+.lb-t .crest.img{width:34px;height:34px}
+.lb-s{font:400 40px/1 var(--ff-display);display:flex;gap:4px}
+.lb-s i{font-style:normal;color:var(--lime)}
+.lb-c{position:absolute;left:0;right:0;bottom:7px;text-align:center;font:800 11px/1 var(--ff-body);letter-spacing:.1em;color:rgba(255,255,255,.8)}
+.lb-c .lv-tag{color:#ff8a98}
+.lb-card.scored{animation:lbFlash 1.6s ease-out 2}
+.lb-goal{position:absolute;inset:0;display:grid;place-items:center;font:400 46px/1 var(--ff-display);color:var(--lime);background:rgba(20,8,90,.55);pointer-events:none;animation:lbGoal 2.6s ease-out both}
+@keyframes lbFlash{0%{box-shadow:inset 0 0 0 3px var(--lime),0 0 40px rgba(200,255,46,.9)}100%{box-shadow:inset 0 0 0 2px #ff5a6e,0 0 30px -8px rgba(255,90,110,.7)}}
+@keyframes lbGoal{0%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(1.1)}25%{transform:scale(1)}75%{opacity:1}100%{opacity:0}}
+/* recap */
+.rc-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.rc-stats div{flex:1 1 90px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.rc-stats b{display:block;font:400 34px/1 var(--ff-display);color:#fff}
+.rc-stats span{display:block;margin-top:5px;font:800 10px/1.2 var(--ff-body);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.rc-cards{display:grid;gap:10px;margin-top:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.rc-card{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:18px;border:0;cursor:pointer;text-align:left;text-decoration:none;color:#fff;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:transform .4s var(--spring)}
+.rc-card:hover{transform:translateY(-3px)}
+.rc-card .k{font:800 10.5px/1 var(--ff-body);letter-spacing:.16em;text-transform:uppercase;color:var(--lime)}
+.rc-row{display:flex;align-items:center;gap:10px}
+.rc-row b{font:400 24px/1 var(--ff-display);text-transform:uppercase;letter-spacing:.01em}
+.rc-row b.big{font-size:42px}
+.rc-row em{font-style:normal;font:700 13px/1 var(--ff-body);color:rgba(255,255,255,.8)}
+.rc-row .crest.img{width:34px;height:34px}
+/* entrance (first load only) */
+.hz.play .fo-team:first-of-type{animation:foL .9s var(--spring) .35s both}
+.hz.play .fo-team:last-of-type{animation:foR .9s var(--spring) .35s both}
+.hz.play .fo-mid{animation:stIn .8s var(--spring) .75s both}
+.hz.play .fo-bg i{animation:foSweep 1s var(--out) .15s both}
+.hz.play .lb-card,.hz.play .rc-card,.hz.play .hz-chip{animation:riseIn .6s var(--out) both;animation-delay:calc(.5s + var(--k,0) * 40ms)}
+@keyframes foL{from{opacity:0;transform:translateX(-60px) scale(.8)}to{opacity:1;transform:none}}
+@keyframes foR{from{opacity:0;transform:translateX(60px) scale(.8)}to{opacity:1;transform:none}}
+@keyframes foSweep{from{opacity:0;transform:scaleX(.2)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.hz *{animation:none!important}}
+html.rm .hz *{animation:none!important}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="mlBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3A1CFF"/><stop offset=".6" stop-color="#7B2FF5"/><stop offset="1" stop-color="#C040E6"/></linearGradient><linearGradient id="mlMoon" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4FF7A"/><stop offset="1" stop-color="#B6F000"/></linearGradient><mask id="mlMask" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="#fff"/><circle class="lm-cut" cx="27.5" cy="21" r="13" fill="#000"/></mask><clipPath id="mlClip"><circle cx="21" cy="27" r="14"/></clipPath><symbol id="ml-mark" viewBox="0 0 48 48"><rect x="1" y="1" width="46" height="46" rx="15" fill="url(#mlBg)"/><rect x="1.5" y="1.5" width="45" height="45" rx="14.5" fill="none" stroke="rgba(255,255,255,.28)"/><g clip-path="url(#mlClip)" class="lm-panel" opacity=".5" stroke="#fff" stroke-width="1.3" fill="none" stroke-linejoin="round"><path d="M21 22.5l4.3 3.1-1.6 5h-5.4l-1.6-5z" fill="rgba(255,255,255,.35)"/><path d="M21 22.5V15M25.3 25.6l7-2.3M23.7 30.6l4.4 6M18.3 30.6l-4.4 6M16.7 25.6l-7-2.3"/></g><circle cx="21" cy="27" r="14" fill="url(#mlMoon)" mask="url(#mlMask)"/><path class="lm-spark" d="M35 6.5c.6 3.7 2.8 5.9 6.5 6.5-3.7.6-5.9 2.8-6.5 6.5-.6-3.7-2.8-5.9-6.5-6.5 3.7-.6 5.9-2.8 6.5-6.5z" fill="#fff"/></symbol></defs></svg>
 
@@ -1700,6 +1799,98 @@ applyTheme(store.get('ml.theme', null));
 try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', updateThemeBtn); } catch (e) {}
 
 /* ================= HOME ================= */
+/* ================= Home hero: changes with the moment (before / during / after a matchday) ================= */
+const HERO_FORCE = (() => { try { const v = new URLSearchParams(location.search).get('hero'); return /^(pre|live|recap)$/.test(v || '') ? v : null; } catch (e) { return null; } })();
+const HERO_PREV = {};
+function heroState(liveNow, lmd, nx){
+  if (HERO_FORCE === 'live' && liveNow.length) return 'live';
+  if (HERO_FORCE === 'recap' && lmd) return 'recap';
+  if (HERO_FORCE === 'pre' && nx.list.length) return 'pre';
+  if (liveNow.length) return 'live';
+  const mdDone = lmd && !D.fixtures.some(f => f.md === lmd && f.status !== 'FT');
+  const last = D.fixtures.filter(f => f.md === lmd && f.status === 'FT').map(kickoff).filter(Boolean).sort((a, b) => b - a)[0];
+  if (mdDone && last && Date.now() - last < 60 * 36e5) return 'recap';
+  if (nx.list.length) return 'pre';
+  return lmd ? 'recap' : 'pre';
+}
+function featuredFixture(list){
+  const pos = id => (stOf(id) || { pos: 36 }).pos, sc = f => pos(f.home) + pos(f.away) + Math.max(pos(f.home), pos(f.away));
+  return list.slice().sort((a, b) => sc(a) - sc(b) || ((kickoff(a) || 0) - (kickoff(b) || 0)))[0] || null;
+}
+function heroChars(s, o){ return String(s).split('').map((c, i) => c === ' ' ? ' ' : '<span class="ch" style="--k:' + (i + o) + '">' + esc(c) + '</span>').join(''); }
+const FO_PITCH = '<svg class="fo-pitch" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><g fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.4"><line x1="200" y1="-10" x2="200" y2="210"/><circle cx="200" cy="100" r="54"/><circle cx="200" cy="100" r="3" fill="rgba(255,255,255,.4)"/></g></svg>';
+function foTeam(id, st){
+  const t = T.get(id);
+  return '<button type="button" class="fo-team" data-act="club" data-id="' + esc(id) + '"><span class="fo-crest">' + crest(id, 'xl') + '</span><b class="fo-name">' + esc(t.name) + '</b>' +
+    (st ? '<span class="fo-meta">' + ordinal(st.pos) + ' · ' + st.pts + ' pts</span>' + formPills(st.form, 4) : '') + '</button>';
+}
+function foStage(f, mid){
+  return '<div class="fo" style="--ch:' + heatColor(f.home) + ';--ca:' + heatColor(f.away) + '"><div class="fo-bg" aria-hidden="true"><i class="l"></i><i class="r"></i></div>' + FO_PITCH +
+    foTeam(f.home, stOf(f.home)) + '<div class="fo-mid">' + mid + '</div>' + foTeam(f.away, stOf(f.away)) + '</div>';
+}
+/* fantasy points a player earned in one matchday, from match data */
+function roundPts(pid, md){
+  const p = P.get(pid); if (!p) return 0; let pts = 0;
+  playerLog(p).filter(r => r.f.md === md && r.has && r.played).forEach(r => {
+    const conc = r.s === 'h' ? r.f.as : r.f.hs;
+    pts += 2 + r.g * GOAL[p.pos] + r.a * 3 + (conc === 0 && r.min >= 60 ? CSPTS[p.pos] : 0) - r.y - 3 * r.r;
+  });
+  return pts;
+}
+function heroHtml(c){
+  const { liveNow, lmd, nx, results, ftRes, goalsN, big } = c;
+  const state = heroState(liveNow, lmd, nx);
+  const play = !HERO.played && !RM; HERO.played = true;
+  let h = '<section class="hero hz hz-' + state + (play ? ' play' : '') + '" aria-labelledby="hero-h">';
+  if (state === 'live') {
+    const md = liveNow[0].md;
+    const today = D.fixtures.filter(f => f.md === md && f.status !== 'SCHED' && lKey(f) === lKey(liveNow[0])).sort((a, b) => (b.status === 'LIVE') - (a.status === 'LIVE') || ((kickoff(a) || 0) - (kickoff(b) || 0)));
+    h += '<div class="kicker"><span class="live-pill"><i></i>Live</span> Matchday ' + md + ' · ' + liveNow.length + (liveNow.length === 1 ? ' match' : ' matches') + ' in play</div>' +
+      '<h1 id="hero-h" class="kinetic hz-title" aria-label="Live now">' + heroChars('LIVE', 0) + ' <span class="hz-hi">' + heroChars('NOW', 5) + '</span></h1>' +
+      '<div class="lb">' + today.map(f => {
+        const tot = f.hs + f.as, prev = HERO_PREV[f.id], scored = prev != null && tot > prev; HERO_PREV[f.id] = tot;
+        const lv = f.status === 'LIVE';
+        return '<button type="button" class="lb-card' + (lv ? ' on' : '') + (scored ? ' scored' : '') + '" data-act="match" data-id="' + esc(f.id) + '" style="--ch:' + heatColor(f.home) + ';--ca:' + heatColor(f.away) + '" aria-label="' + esc((lv ? 'Live, ' + (f.clock || '') + ': ' : 'Full time: ') + T.get(f.home).name + ' ' + f.hs + ', ' + T.get(f.away).name + ' ' + f.as) + '">' +
+          '<span class="lb-t">' + crest(f.home) + '<b>' + esc(T.get(f.home).short) + '</b></span><span class="lb-s">' + f.hs + '<i>–</i>' + f.as + '</span><span class="lb-t r"><b>' + esc(T.get(f.away).short) + '</b>' + crest(f.away) + '</span>' +
+          '<span class="lb-c">' + (lv ? liveTag(f) : 'FT') + '</span>' + (scored ? '<span class="lb-goal" aria-hidden="true">GOAL!</span>' : '') + '</button>';
+      }).join('') + '</div>' +
+      '<div class="hz-foot"><p class="hz-note"><span class="dot"></span>Live from ESPN · scores refresh every 30 seconds. Tap a match for the live match centre.</p>' +
+      '<div class="hero-cta"><button class="btn primary" type="button" data-act="goto-fixtures" data-md="' + md + '">All Matchday ' + md + ' fixtures ›</button></div></div>';
+  } else if (state === 'recap') {
+    const md = lmd, fx = D.fixtures.filter(f => f.md === md && f.status === 'FT');
+    const goals = fx.reduce((a, f) => a + f.hs + f.as, 0), hw = fx.filter(f => f.hs > f.as).length, dr = fx.filter(f => f.hs === f.as).length;
+    const best = fx.slice().sort((a, b) => (b.hs + b.as) - (a.hs + a.as) || Math.abs(b.hs - b.as) - Math.abs(a.hs - a.as))[0];
+    const tally = {}; fx.forEach(f => { const m = matchOf(f.id); (m && m.goals || []).forEach(g => { if (g.type === 'og') return; const tid = g.team === 'a' ? f.away : f.home, id = pidFor(g.player, tid, g.playerId); const k = id || ('n:' + g.player + '|' + tid); tally[k] = tally[k] || { id, name: g.player, tid, n: 0 }; tally[k].n++; }); });
+    const top = Object.values(tally).sort((a, b) => b.n - a.n)[0];
+    h += '<div class="kicker">Matchday ' + md + ' · Full time</div>' +
+      '<h1 id="hero-h" class="kinetic hz-title" aria-label="Matchday ' + md + ' recap">' + heroChars('MATCHDAY', 0) + ' <span class="hz-hi">' + heroChars(String(md), 9) + '</span></h1>' +
+      '<div class="rc-stats"><div><b>' + goals + '</b><span>goals</span></div><div><b>' + (fx.length ? (goals / fx.length).toFixed(2) : '0') + '</b><span>per game</span></div><div><b>' + hw + '/' + dr + '/' + (fx.length - hw - dr) + '</b><span>home W / D / away W</span></div></div>';
+    if (best) h += '<div class="hz-label">Result of the night</div>' + foStage(best, '<button type="button" class="fo-score" data-act="match" data-id="' + esc(best.id) + '" aria-label="Match centre">' + best.hs + '<i>–</i>' + best.as + '</button><span class="fo-day">Full time · ' + esc(lDay(best)) + '</span>');
+    let cards = '';
+    if (top) cards += '<button type="button" class="rc-card" ' + (top.id ? 'data-act="player" data-id="' + esc(top.id) + '"' : 'data-act="club" data-id="' + esc(top.tid) + '"') + '><span class="k">Top scorer of the round</span><span class="rc-row">' + crest(top.tid) + '<b>' + esc(top.name) + '</b><em>' + top.n + (top.n === 1 ? ' goal' : ' goals') + '</em></span></button>';
+    const e = S.saved, sq = (e && e.squad || []).filter(id => P.has(id));
+    if (sq.length) { const pts = sq.reduce((a, id) => a + roundPts(id, md) * (id === e.captain ? 2 : 1), 0); cards += '<a class="rc-card" href="#fantasy" data-act="ftab" data-tab="xi"><span class="k">Your XI this round</span><span class="rc-row"><b class="big">' + pts + '</b><em>points</em></span></a>'; }
+    else cards += '<a class="rc-card" href="#fantasy" data-act="ftab" data-tab="xi"><span class="k">Fantasy</span><span class="rc-row"><b>Pick your XI</b><em>before Matchday ' + (md + 1) + '</em></span></a>';
+    h += '<div class="rc-cards">' + cards + '</div>';
+    if (nx.md) h += '<div class="hz-foot"><div class="hero-cd"><span class="k">Matchday ' + nx.md + ' in</span><div id="cd" aria-live="off"></div></div><div class="hero-cta"><button class="btn primary" type="button" data-act="goto-fixtures" data-md="' + md + '">All results ›</button></div></div>';
+  } else {
+    const list = nx.list, f = featuredFixture(list);
+    if (!f) {
+      h += '<div class="kicker">League phase ' + esc(D.meta.season) + '</div><h1 id="hero-h" class="kinetic hz-title">' + heroChars('NO FIXTURES', 0) + '</h1><p class="hero-lede">Check back after the draw.</p>';
+    } else {
+      const ko = kickoff(f), m = previewModel(f), pc = x => Math.round(x * 100), th = T.get(f.home), ta = T.get(f.away);
+      h += '<div class="kicker">Match of the night · Matchday ' + nx.md + '</div>' +
+        '<h1 id="hero-h" class="kinetic hz-title" aria-label="Matchday ' + nx.md + ': ' + esc(th.name + ' versus ' + ta.name) + '">' + heroChars('MATCHDAY', 0) + ' <span class="hz-hi">' + heroChars(String(nx.md), 9) + '</span></h1>' +
+        foStage(f, '<span class="fo-vs">VS</span><span class="fo-time">' + esc(lTime(f)) + '</span><span class="fo-day">' + esc(lDay(f)) + ' · ' + esc(tzShort(ko)) + '</span>');
+      if (m) h += '<div class="fo-odds" style="--ch:' + heatColor(f.home) + ';--ca:' + heatColor(f.away) + '" aria-label="' + esc('Model estimate: ' + th.name + ' ' + pc(m.pw) + '%, draw ' + pc(m.pd) + '%, ' + ta.name + ' ' + pc(m.pl) + '%') + '"><div class="fo-bar" aria-hidden="true"><i style="flex:' + m.pw + ';background:var(--ch)"></i><i class="d" style="flex:' + m.pd + '"></i><i style="flex:' + m.pl + ';background:var(--ca)"></i></div><div class="fo-bar-l" aria-hidden="true"><span><b>' + pc(m.pw) + '%</b> ' + esc(th.short) + '</span><span><b>' + pc(m.pd) + '%</b> Draw</span><span><b>' + pc(m.pl) + '%</b> ' + esc(ta.short) + '</span></div></div>';
+      h += '<div class="hz-foot"><div class="hero-cd"><span class="k">Matchday ' + nx.md + ' kicks off in</span><div id="cd" aria-live="off"></div></div>' +
+        '<div class="hero-cta"><a class="btn primary" href="#fantasy" data-act="ftab" data-tab="pred">Predict the scores</a><button class="btn ghost" type="button" data-act="match" data-id="' + esc(f.id) + '">Match preview</button><button class="btn ghost" type="button" data-act="goto-fixtures" data-md="' + nx.md + '">All ' + list.length + ' fixtures ›</button></div></div>';
+      h += '<div class="hz-chips" role="list" aria-label="Matchday ' + nx.md + ' fixtures">' + list.slice().sort((a, b) => ((kickoff(a) || 0) - (kickoff(b) || 0))).map(x => '<button type="button" role="listitem" class="hz-chip' + (x.id === f.id ? ' feat' : '') + '" data-act="match" data-id="' + esc(x.id) + '"><span class="tm">' + esc(lDay(x).split(' ')[0]) + ' ' + esc(lTime(x)) + '</span><span class="tt">' + crest(x.home, 'sm') + esc(T.get(x.home).short) + '<i>v</i>' + esc(T.get(x.away).short) + crest(x.away, 'sm') + '</span></button>').join('') + '</div>';
+    }
+  }
+  h += '<div class="hero-bar" aria-hidden="true"></div></section>';
+  return h;
+}
 function renderHome(){
   const el = $('#view-home');
   const lmd = lastPlayedMd();
@@ -1714,24 +1905,7 @@ function renderHome(){
   const ftRes = results.filter(f => f.status === 'FT');
   const goalsN = ftRes.reduce((a, f) => a + f.hs + f.as, 0);
   const big = ftRes.slice().sort((a, b) => Math.abs(b.hs - b.as) - Math.abs(a.hs - a.as) || (b.hs + b.as) - (a.hs + a.as))[0];
-  const play = !HERO.played && !RM; HERO.played = true;
-  const split = (s, o) => s.split('').map((c, i) => '<span class="ch" style="--k:' + (i + o) + '">' + c + '</span>').join('');
-  const kick = liveNow.length ? 'Matchday ' + liveNow[0].md + ' · In play' : nx.md ? 'Next up · League phase ' + esc(D.meta.season) : lmd ? 'Matchday ' + lmd + ' · Full time' : 'League phase ' + esc(D.meta.season);
-  const lede = liveNow.length ? '<b>' + liveNow.length + (liveNow.length === 1 ? ' match' : ' matches') + ' in play</b> right now. Tap a score for the live match centre.'
-    : (ftRes.length && big) ? 'Matchday ' + lmd + ' delivered <b>' + goalsN + ' goals in ' + ftRes.length + ' games</b>, including <b>' + esc(T.get(big.home).name) + ' ' + big.hs + '–' + big.as + ' ' + esc(T.get(big.away).name) + '</b>.'
-    : '36 clubs, eight matchdays, one table. The top eight go straight to the Round of 16.';
-  const stick = results.filter(f => f.hs != null).slice().sort((a, b) => (b.status === 'LIVE') - (a.status === 'LIVE') || (b.hs + b.as) - (a.hs + a.as)).slice(0, 3);
-  const SPOS = [['48%', '3%', '5deg'], ['2%', '60%', '-6deg'], ['52%', '76%', '-3deg']];
-  h += '<section class="hero' + (play ? ' play' : '') + '" aria-labelledby="hero-h"><div class="hero-grid"><div class="hero-copy">' +
-    '<div class="kicker">' + (liveNow.length ? '<span class="live-pill"><i></i>Live</span> ' : '') + kick + '</div>' +
-    '<h1 id="hero-h" class="kinetic" aria-label="Matchday ' + hmd + '"><span class="ln" aria-hidden="true">' + split('MATCH', 0) + '</span><span class="ln" aria-hidden="true"><span class="outline">' + split('DAY', 5) + '</span> <span class="ch md-n" style="--k:9">' + hmd + '</span></span></h1>' +
-    '<p class="hero-lede">' + lede + '</p>';
-  if (nx.md) h += '<div class="hero-cd"><span class="k">' + (nx.md === hmd ? 'Lights back on in' : 'Matchday ' + nx.md + ' in') + '</span><div id="cd" aria-live="off"></div></div><p class="hero-when">Matchday ' + nx.md + ' · ' + esc(dateLine) + (nx.list.length && kickoff(nx.list[0]) ? ' · your time (' + esc(tzShort(kickoff(nx.list[0]))) + ')' : '') + '</p>';
-  else h += '<p class="hero-when">No fixtures scheduled · check back after the draw</p>';
-  h += '<div class="hero-cta">' + (nx.md || lmd ? '<button class="btn primary" type="button" data-act="goto-fixtures" data-md="' + (liveNow.length ? liveNow[0].md : (nx.md || lmd)) + '">' + (nx.md ? 'All ' + nx.list.length + ' fixtures' : 'All fixtures') + ' ›</button>' : '') + '<a class="btn ghost" href="#table">The table</a></div>';
-  h += '</div><div class="art">' + HERO_ART + stick.map((f, i) => '<button type="button" class="sticker" data-act="match" data-id="' + esc(f.id) + '" style="left:' + SPOS[i][0] + ';top:' + SPOS[i][1] + ';--r:' + SPOS[i][2] + ';--d:' + (i * .18) + '" aria-label="' + esc((f.status === 'LIVE' ? 'Live: ' : '') + T.get(f.home).name + ' ' + f.hs + ', ' + T.get(f.away).name + ' ' + f.as) + '">' + (i === 0 ? '<small>' + (f.status === 'LIVE' ? 'Live' : 'MD' + f.md + ' · Hot') + '</small>' : '') + crest(f.home) + '<span class="sc">' + f.hs + '–' + f.as + '</span>' + crest(f.away) + '</button>').join('') + '</div></div>';
-  if (nx.md && nx.list.length) h += '<div class="next-fx" aria-label="Matchday ' + nx.md + ' fixtures">' + nx.list.slice(0, 18).map(f => '<span class="mini-fx">' + crest(f.home, 'sm') + esc(T.get(f.home).short) + '<span class="v">v</span>' + esc(T.get(f.away).short) + crest(f.away, 'sm') + '</span>').join('') + '</div>';
-  h += '<div class="hero-bar" aria-hidden="true"><span class="tag">Kick-off ↓ scroll</span></div></section>';
+  h += heroHtml({ liveNow, lmd, nx, results, ftRes, goalsN, big });
   if (results.length) {
     const mi = (f, hid) => '<button type="button" class="mq' + (f.status === 'LIVE' ? ' live' : '') + '" data-act="match" data-id="' + esc(f.id) + '"' + (hid ? ' tabindex="-1" aria-hidden="true"' : ' aria-label="' + esc((f.status === 'LIVE' ? 'Live, ' + (f.clock || '') + ': ' : '') + T.get(f.home).name + ' ' + f.hs + ', ' + T.get(f.away).name + ' ' + f.as) + '"') + '>' + crest(f.home, 'sm') + '<span>' + esc(T.get(f.home).short) + '</span><span class="s">' + f.hs + '–' + f.as + '</span><span>' + esc(T.get(f.away).short) + '</span>' + crest(f.away, 'sm') + (f.status === 'LIVE' ? liveTag(f) : '') + '</button><span class="mq-sep" aria-hidden="true">✦</span>';
     h += '<div class="marquee" role="region" aria-label="' + (liveNow.length ? 'Live scores' : 'Matchday ' + lmd + ' results') + '"><button type="button" class="mq-label" data-act="goto-fixtures" data-md="' + (liveNow.length ? liveNow[0].md : lmd) + '">' + (liveNow.length ? liveNow.length + ' live' : 'MD' + lmd + ' · FT') + ' ›</button><div class="marquee-track">' + results.map(f => mi(f, false)).join('') + results.map(f => mi(f, true)).join('') + '</div></div>';
@@ -2710,6 +2884,7 @@ function onHash(){
   show(ROUTES.includes(h) ? h : 'home');
 }
 function show(r){
+  document.documentElement.setAttribute('data-route', r);
   const changed = S.route !== r; S.route = r;
   ROUTES.forEach(x => { $('#view-' + x).hidden = x !== r; });
   $$('.nav a[data-route]').forEach(a => { if (a.dataset.route === r) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -3120,7 +3295,7 @@ function renderSide(){
     else { const r = myRank(); h += '<div class="fm-row"><div class="kpi"><span>Points</span><b>' + (xiPoints(e) + predPoints(e.predictions)) + '</b></div><div class="kpi"><span>' + (r && !r.pending ? 'Rank' : 'Players') + '</span><b>' + (r && !r.pending ? ordinal(r.rank) + '<small>/' + r.of + '</small>' : n + '<small>/11</small>') + '</b></div></div><a class="fm-link" href="#fantasy" data-act="ftab" data-tab="xi">' + esc(e.teamName || 'Unnamed XI') + (r && !r.pending ? ' · ' + esc(r.name) : '') + ' ›</a>'; }
   }
   h += '</div>';
-  const lp = lastPlayedMd(), tot = Math.max(8, ...D.fixtures.map(f => f.md || 0));
+  const tot = Math.max(8, ...D.fixtures.map(f => f.md || 0)); let lp = 0; for (let m = 1; m <= tot; m++) { const l = D.fixtures.filter(f => f.md === m); if (l.length && l.every(f => f.status === 'FT')) lp = m; else break; }
   h += '<div class="side-card meter" aria-label="League phase progress: matchday ' + lp + ' of ' + tot + '"><span class="sc-h">League phase</span><div class="segs" style="--n:' + tot + '" aria-hidden="true">' + Array.from({ length: tot }, (_, i) => '<i class="' + (i < lp ? 'on' : i === lp && nx.md ? 'nx' : '') + '" style="--k:' + i + '"></i>').join('') + '</div><div class="lbl"><span><b>MD ' + lp + '</b> of ' + tot + '</span><span>' + (nx.md ? 'Next: MD' + nx.md : 'Phase complete') + '</span></div></div>';
   if (UI.sideHtml !== h) { UI.sideHtml = h; el.innerHTML = h; }
   tickSide();
