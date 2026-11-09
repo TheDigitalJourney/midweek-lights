@@ -861,6 +861,19 @@ function kickoff(f){
   const y = +dm[1], mo = +dm[2], d = +dm[3];
   return new Date(Date.UTC(y, mo - 1, d, +tm[1] - cetOffset(y, mo, d), +tm[2]));
 }
+/* ---- kick-off times in the viewer's own time zone (device setting; ?tz=Area/City overrides for testing) ---- */
+const VIEW_TZ = (() => { try { const z = new URLSearchParams(location.search).get('tz'); if (z) { new Intl.DateTimeFormat('en', { timeZone: z }); return z; } } catch (e) {} return undefined; })();
+const _dayFmt = (() => { try { return new Intl.DateTimeFormat('en-GB', { timeZone: VIEW_TZ, year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short' }); } catch (e) { return null; } })();
+function koParts(f){
+  const k = kickoff(f); if (!k || isNaN(k)) return null;
+  if (!_dayFmt) return { y: k.getFullYear(), m: k.getMonth() + 1, d: k.getDate(), wd: DOW[k.getDay()], k };
+  const o = {}; _dayFmt.formatToParts(k).forEach(x => { o[x.type] = x.value; });
+  return { y: +o.year, m: +o.month, d: +o.day, wd: o.weekday, k };
+}
+function lDay(f){ const p = koParts(f); return p ? p.wd + ' ' + p.d + ' ' + MONTHS[p.m - 1] : fmtDay(f.date); }
+function lKey(f){ const p = koParts(f); if (!p) return f.date || ''; const z = n => String(n).padStart(2, '0'); return p.y + '-' + z(p.m) + '-' + z(p.d); }
+function lTime(f){ if (!f || !f.time) return 'TBC'; const k = kickoff(f); try { return k.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: VIEW_TZ }); } catch (e) { return f.time; } }
+function tzShort(d, style){ for (const n of [style || 'shortGeneric', 'short']) { try { const x = new Intl.DateTimeFormat([], { timeZone: VIEW_TZ, timeZoneName: n }).formatToParts(d || new Date()).find(q => q.type === 'timeZoneName'); if (x) return x.value; } catch (e) {} } return ''; }
 function tzLabel(f){ const dm = /^(\d{4})-(\d{2})-(\d{2})/.exec(f && f.date || ''); return dm && cetOffset(+dm[1], +dm[2], +dm[3]) === 2 ? 'CEST' : 'CET'; }
 function ordinal(n){ const s = ['th','st','nd','rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
 function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -1125,7 +1138,7 @@ function renderHome(){
   const liveNow = D.fixtures.filter(f => f.status === 'LIVE');
   const results = liveNow.length ? D.fixtures.filter(f => f.md === liveNow[0].md && f.date === liveNow[0].date && f.status !== 'SCHED').sort((a, b) => (b.status === 'LIVE') - (a.status === 'LIVE')) : D.fixtures.filter(f => f.md === lmd && f.status === 'FT');
   const nx = nextMdFixtures();
-  const dates = nx.list.length ? Array.from(new Set(nx.list.map(f => f.date))).sort() : ((D.meta.nextMatchday && D.meta.nextMatchday.dates) || []);
+  const dates = nx.list.length ? Array.from(new Set(nx.list.map(lKey))).sort() : ((D.meta.nextMatchday && D.meta.nextMatchday.dates) || []);
   const dateLine = dates.length > 1 ? fmtDay(dates[0]) + ' & ' + fmtDay(dates[dates.length - 1]) : dates.length ? fmtDay(dates[0]) : '';
   const scorers = D.players.filter(p => p.goals > 0).sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.mins - b.mins).slice(0, 6);
   let h = '<div class="home-grid">';
@@ -1167,7 +1180,7 @@ function renderHome(){
 }
 function scoreCard(f){
   const lv = f.status === 'LIVE', hw = !lv && f.hs > f.as, aw = !lv && f.as > f.hs;
-  return '<button class="score-card' + (lv ? ' live' : '') + '" role="listitem" type="button" data-act="match" data-id="' + esc(f.id) + '" aria-label="' + esc((lv ? 'Live, ' + (f.clock || '') + ': ' : '') + T.get(f.home).name + ' ' + f.hs + ', ' + T.get(f.away).name + ' ' + f.as) + '"><div class="sc-meta"><span>' + esc(fmtDay(f.date)) + '</span><span>' + (lv ? liveTag(f) : 'FT') + '</span></div>' +
+  return '<button class="score-card' + (lv ? ' live' : '') + '" role="listitem" type="button" data-act="match" data-id="' + esc(f.id) + '" aria-label="' + esc((lv ? 'Live, ' + (f.clock || '') + ': ' : '') + T.get(f.home).name + ' ' + f.hs + ', ' + T.get(f.away).name + ' ' + f.as) + '"><div class="sc-meta"><span>' + esc(lDay(f)) + '</span><span>' + (lv ? liveTag(f) : 'FT') + '</span></div>' +
     '<div class="sc-row' + (aw ? ' lose' : '') + '">' + crest(f.home, 'sm') + '<span class="nm">' + esc(T.get(f.home).name) + '</span><span class="g">' + f.hs + '</span></div>' +
     '<div class="sc-row' + (hw ? ' lose' : '') + '">' + crest(f.away, 'sm') + '<span class="nm">' + esc(T.get(f.away).name) + '</span><span class="g">' + f.as + '</span></div></button>';
 }
@@ -1230,13 +1243,14 @@ function fixturesHtml(){
   }
   h += '</div>';
   const list = D.fixtures.filter(f => f.md === S.fxMd);
-  const days = Array.from(new Set(list.map(f => f.date)));
+  const days = Array.from(new Set(list.map(lKey)));
+  if (list.some(f => f.status !== 'FT')) h += '<p class="hint" style="margin:8px 0 14px">Kick-off times in your time zone · ' + esc(tzShort(kickoff(list.find(f => f.status !== 'FT')), 'long')) + '</p>';
   days.forEach(d => {
     h += '<div class="fx-day"><h3>' + esc(fmtDay(d) || 'Date TBC') + '</h3><div class="fx-list">';
-    h += list.filter(f => f.date === d).map(f => {
+    h += list.filter(f => lKey(f) === d).map(f => {
       const ft = f.status === 'FT', lv = f.status === 'LIVE', hw = ft && f.hs > f.as, aw = ft && f.as > f.hs;
       return '<div class="fx"><button class="side h' + (aw ? ' lose' : '') + '" type="button" data-act="club" data-id="' + esc(f.home) + '"><span>' + esc(T.get(f.home).name) + '</span>' + crest(f.home) + '</button><button type="button" class="mid" data-act="match" data-id="' + esc(f.id) + '" aria-label="' + (ft ? 'Match details' : lv ? 'Live match' : 'Match preview') + '">' +
-        (ft ? '<span class="score">' + f.hs + '–' + f.as + '</span><span class="st">' + (matchOf(f.id) || f.eid ? 'Stats ›' : 'Full time') + '</span>' : lv ? '<span class="score">' + f.hs + '–' + f.as + '</span><span class="st">' + liveTag(f) + '</span>' : '<span class="time">' + esc(f.time || 'TBC') + '</span><span class="st">' + (f.note ? esc(f.note) : 'Preview ›') + '</span>') +
+        (ft ? '<span class="score">' + f.hs + '–' + f.as + '</span><span class="st">' + (matchOf(f.id) || f.eid ? 'Stats ›' : 'Full time') + '</span>' : lv ? '<span class="score">' + f.hs + '–' + f.as + '</span><span class="st">' + liveTag(f) + '</span>' : '<span class="time">' + esc(lTime(f)) + '</span><span class="st">' + (f.note ? esc(f.note) : 'Preview ›') + '</span>') +
         '</button><button class="side' + (hw ? ' lose' : '') + '" type="button" data-act="club" data-id="' + esc(f.away) + '">' + crest(f.away) + '<span>' + esc(T.get(f.away).name) + '</span></button></div>';
     }).join('');
     h += '</div></div>';
@@ -1632,7 +1646,7 @@ function predHtml(){
   if (!nx.list.length) h += '<div class="panel empty"><b>Nothing to predict</b>The next matchday’s fixtures aren’t out yet.</div>';
   else {
     const now = Date.now();
-    h += '<div class="sec-h"><h2>Matchday ' + nx.md + ' predictions</h2></div><p class="hint" style="margin:-4px 0 12px">Exact score 3 pts · correct result 1 pt. Each match locks at kick-off (' + tzLabel(nx.list[0]) + ' times).</p>';
+    h += '<div class="sec-h"><h2>Matchday ' + nx.md + ' predictions</h2></div><p class="hint" style="margin:-4px 0 12px">Exact score 3 pts · correct result 1 pt. Each match locks at kick-off.</p>';
     h += '<form id="pred-form" novalidate><div class="pred-list">';
     h += nx.list.map(f => {
       const v = S.predDraft[f.id] || {}, ko = kickoff(f), locked = ko && ko.getTime() <= now, sid = safeId(f.id);
@@ -1725,7 +1739,7 @@ const SHEETS = {
     if (fx.length) h += '<div class="sh-sec"><h3>Fixtures & results</h3>' + fx.map(f => {
       const home = f.home === id, opp = home ? f.away : f.home, ft = f.status === 'FT', lvx = f.status === 'LIVE';
       const gf = home ? f.hs : f.as, ga = home ? f.as : f.hs, r = ft ? (gf > ga ? 'W' : gf === ga ? 'D' : 'L') : '';
-      return '<button type="button" class="res-row" data-act="match" data-id="' + esc(f.id) + '" data-push="1"><span class="md">MD' + f.md + '</span>' + crest(opp, 'sm') + '<span class="opp">' + (home ? 'v ' : '@ ') + esc(T.get(opp).name) + '</span><span class="sc">' + (ft ? gf + '–' + ga : lvx ? gf + '–' + ga + ' ' + liveTag(f) : '<span class="faint" style="font:600 13px var(--ff-data)">' + esc(fmtDay(f.date)) + '</span>') + '</span>' + (r ? '<span class="fp ' + r + '">' + r + '</span>' : '<span class="faint">›</span>') + '</button>';
+      return '<button type="button" class="res-row" data-act="match" data-id="' + esc(f.id) + '" data-push="1"><span class="md">MD' + f.md + '</span>' + crest(opp, 'sm') + '<span class="opp">' + (home ? 'v ' : '@ ') + esc(T.get(opp).name) + '</span><span class="sc">' + (ft ? gf + '–' + ga : lvx ? gf + '–' + ga + ' ' + liveTag(f) : '<span class="faint" style="font:600 13px var(--ff-data)">' + esc(lDay(f)) + '</span>') + '</span>' + (r ? '<span class="fp ' + r + '">' + r + '</span>' : '<span class="faint">›</span>') + '</button>';
     }).join('') + '</div>' + clubMatchSection(id);
     h += '<div class="sh-sec"><h3>Squad · ' + squad.length + ' players</h3>';
     if (squad.length) h += '<div class="sq-head" aria-hidden="true"><span>Pos</span><span>Player</span><span>G</span><span>A</span><span>Pts</span></div>' + squad.map(p => '<button class="sq-row" type="button" data-act="player" data-id="' + esc(p.id) + '" data-push="1"><span class="pos-tag">' + p.pos + '</span><span class="nm">' + esc(p.name) + '</span><span class="v">' + p.goals + '</span><span class="v">' + p.assists + '</span><span class="v on">' + p.fp + '</span></button>').join('');
@@ -2009,7 +2023,7 @@ Object.assign(SHEETS, {
     lvWatch(fid);
     const m = matchOf(fid), th = T.get(f.home), ta = T.get(f.away);
     let h = '<div class="mh"><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.home) + '" data-push="1">' + crest(f.home, 'lg') + '<span>' + esc(th.name) + '</span></button><div class="mh-s"><b>' + f.hs + '<i>–</i>' + f.as + '</b><span>' + (f.status === 'LIVE' ? liveTag(f) : 'Full time') + '</span></div><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.away) + '" data-push="1">' + crest(f.away, 'lg') + '<span>' + esc(ta.name) + '</span></button></div>';
-    const meta = ['Matchday ' + f.md, fmtDay(f.date) + (f.time ? ' · ' + f.time + ' CET' : '')].concat(m ? [m.venue, m.referee ? 'Referee: ' + m.referee : '', m.attendance ? 'Att. ' + Number(m.attendance).toLocaleString('en-GB') : ''] : []).filter(Boolean);
+    const meta = ['Matchday ' + f.md, lDay(f) + (f.time ? ' · ' + lTime(f) + ' ' + tzShort(kickoff(f)) : '')].concat(m ? [m.venue, m.referee ? 'Referee: ' + m.referee : '', m.attendance ? 'Att. ' + Number(m.attendance).toLocaleString('en-GB') : ''] : []).filter(Boolean);
     h += '<p class="mh-meta">' + meta.map(esc).join(' · ') + '</p>';
     if (m && m.goals && m.goals.length) {
       const sc = s => m.goals.filter(g => (g.team === 'a' ? 'a' : 'h') === s).map(g => esc(surnameOf(g.player)) + ' ' + minTxt(g.min) + (g.type === 'pen' ? ' (p)' : g.type === 'og' ? ' (og)' : '')).join(', ');
@@ -2030,7 +2044,7 @@ Object.assign(SHEETS, {
   },
   preview(fid){
     const f = FX.get(fid); if (!f) return null; const th = T.get(f.home), ta = T.get(f.away), H = stOf(f.home), A = stOf(f.away), md = previewModel(f);
-    let h = '<div class="mh"><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.home) + '" data-push="1">' + crest(f.home, 'lg') + '<span>' + esc(th.name) + '</span></button><div class="mh-s"><b class="ko">' + esc(f.time || 'TBC') + '</b><span>' + esc(fmtDay(f.date)) + ' · CET</span></div><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.away) + '" data-push="1">' + crest(f.away, 'lg') + '<span>' + esc(ta.name) + '</span></button></div><p class="mh-meta">Matchday ' + f.md + ' preview</p>';
+    let h = '<div class="mh"><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.home) + '" data-push="1">' + crest(f.home, 'lg') + '<span>' + esc(th.name) + '</span></button><div class="mh-s"><b class="ko">' + esc(lTime(f)) + '</b><span>' + esc(lDay(f)) + ' · ' + esc(tzShort(kickoff(f))) + '</span></div><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.away) + '" data-push="1">' + crest(f.away, 'lg') + '<span>' + esc(ta.name) + '</span></button></div><p class="mh-meta">Matchday ' + f.md + ' preview</p>';
     if (md) {
       const pc = x => Math.round(x * 100);
       h += '<div class="sh-sec"><h3>Model estimate</h3><div class="wdl"><i style="flex:' + md.pw + ';background:' + pairColors(f)[0] + '"></i><i style="flex:' + md.pd + '" class="d"></i><i style="flex:' + md.pl + ';background:' + pairColors(f)[1] + '"></i></div><div class="wdl-l"><span><b>' + pc(md.pw) + '%</b> ' + esc(th.short) + ' win</span><span><b>' + pc(md.pd) + '%</b> Draw</span><span><b>' + pc(md.pl) + '%</b> ' + esc(ta.short) + ' win</span></div>' +
