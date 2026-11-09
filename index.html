@@ -733,6 +733,20 @@ button:hover>.crest,.club-btn:hover .crest,.mh-t:hover .crest{transform:scale(1.
 #celebrate .big span{animation-fill-mode:both}
 #celebrate.on .big{animation:shake .5s .3s 1}
 @keyframes shake{0%,100%{transform:none}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(2px,-1px)}}
+/* live */
+.live-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;background:#e5243b;color:#fff;font:700 11px/1.5 var(--ff-data);letter-spacing:.1em;vertical-align:middle}
+.live-pill i,.lv-tag i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;animation:lvPulse 1.2s ease-in-out infinite}
+.lv-tag{display:inline-flex;align-items:center;gap:5px;color:#e5243b;font-weight:800;letter-spacing:.04em}
+:root[data-theme="dark"] .lv-tag{color:#ff5a6e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lv-tag{color:#ff5a6e}}
+@keyframes lvPulse{50%{opacity:.25;transform:scale(.7)}}
+.score-card.live{box-shadow:inset 0 0 0 1.5px #e5243b}
+.fx .mid .st .lv-tag{font-size:12px}
+.mh-s .lv-tag{font-size:14px;justify-content:center}
+.nav a .nav-live{position:absolute;top:6px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:#e5243b;box-shadow:0 0 0 2px var(--surface);animation:lvPulse 1.2s ease-in-out infinite}
+@media (min-width:900px){.nav a .nav-live{top:50%;left:auto;right:14px;margin-top:-4px}}
+.lv-note{display:flex;align-items:center;gap:8px;font:600 12px/1.3 var(--ff-data);color:var(--muted);letter-spacing:.04em}
+.lv-note .dot{width:7px;height:7px;border-radius:50%;background:var(--win);box-shadow:0 0 0 3px color-mix(in srgb,var(--win) 25%,transparent)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .hero-ball,#route-ball,#celebrate{display:none!important}
@@ -875,7 +889,7 @@ function normalize(raw){
   const fixtures = (Array.isArray(raw.fixtures) ? raw.fixtures : []).filter(f => f && f.home && f.away).map((f, i) => {
     const hs = f.hs == null || f.hs === '' ? null : num(f.hs, null), as = f.as == null || f.as === '' ? null : num(f.as, null);
     const status = String(f.status || (hs != null && as != null ? 'FT' : 'SCHED')).toUpperCase();
-    return { id: String(f.id || ('fx' + i)), md: num(f.md, 0), date: f.date || '', time: f.time || '', home: String(f.home), away: String(f.away), hs, as, status: status === 'FT' && (hs == null || as == null) ? 'SCHED' : status };
+    return { id: String(f.id || ('fx' + i)), md: num(f.md, 0), date: f.date || '', time: f.time || '', home: String(f.home), away: String(f.away), hs, as, status: (status === 'FT' || status === 'LIVE') && (hs == null || as == null) ? 'SCHED' : status, eid: f.eid || null, clock: f.clock || '', note: f.note || '' };
   }).sort((a, b) => a.md - b.md || (a.date + a.time).localeCompare(b.date + b.time) || a.id.localeCompare(b.id));
   fixtures.forEach(f => FX.set(f.id, f));
   // ensure every team referenced exists
@@ -1108,15 +1122,16 @@ try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', upd
 function renderHome(){
   const el = $('#view-home');
   const lmd = lastPlayedMd();
-  const results = D.fixtures.filter(f => f.md === lmd && f.status === 'FT');
+  const liveNow = D.fixtures.filter(f => f.status === 'LIVE');
+  const results = liveNow.length ? D.fixtures.filter(f => f.md === liveNow[0].md && f.date === liveNow[0].date && f.status !== 'SCHED').sort((a, b) => (b.status === 'LIVE') - (a.status === 'LIVE')) : D.fixtures.filter(f => f.md === lmd && f.status === 'FT');
   const nx = nextMdFixtures();
   const dates = nx.list.length ? Array.from(new Set(nx.list.map(f => f.date))).sort() : ((D.meta.nextMatchday && D.meta.nextMatchday.dates) || []);
   const dateLine = dates.length > 1 ? fmtDay(dates[0]) + ' & ' + fmtDay(dates[dates.length - 1]) : dates.length ? fmtDay(dates[0]) : '';
   const scorers = D.players.filter(p => p.goals > 0).sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.mins - b.mins).slice(0, 6);
   let h = '<div class="home-grid">';
-  h += '<section class="hero" aria-labelledby="hero-h"><div class="crowd" aria-hidden="true">' + [6,19,33,47,58,71,84,93].map((x, k) => '<i style="left:' + x + '%;top:' + (k % 2 ? 14 : 5) + 'px;animation-delay:' + (k * 0.53).toFixed(2) + 's"></i>').join('') + '</div><div class="hero-ball" aria-hidden="true">' + BALL_SVG + '</div><svg class="hero-pitch" viewBox="0 0 400 200" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke-width="1.5"><rect x="6" y="6" width="388" height="188" rx="3" pathLength="1"/><line x1="200" y1="6" x2="200" y2="194" pathLength="1"/><circle cx="200" cy="100" r="34" pathLength="1"/><rect x="6" y="52" width="58" height="96" pathLength="1"/><rect x="336" y="52" width="58" height="96" pathLength="1"/><rect x="6" y="78" width="20" height="44" pathLength="1"/><rect x="374" y="78" width="20" height="44" pathLength="1"/><path d="M64 78a26 26 0 0 1 0 44M336 78a26 26 0 0 0 0 44" pathLength="1"/></g><circle cx="200" cy="100" r="3" class="spot"/></svg><div class="hero-top"><div><div class="kicker">' + (lmd ? 'Matchday ' + lmd + ' · Full time' : 'League phase') + '</div><h1 id="hero-h">' + (lmd ? 'Results' : 'Season ' + esc(D.meta.season)) + '</h1></div><div class="season">League phase<br>' + esc(D.meta.season) + '</div></div>';
+  h += '<section class="hero" aria-labelledby="hero-h"><div class="crowd" aria-hidden="true">' + [6,19,33,47,58,71,84,93].map((x, k) => '<i style="left:' + x + '%;top:' + (k % 2 ? 14 : 5) + 'px;animation-delay:' + (k * 0.53).toFixed(2) + 's"></i>').join('') + '</div><div class="hero-ball" aria-hidden="true">' + BALL_SVG + '</div><svg class="hero-pitch" viewBox="0 0 400 200" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke-width="1.5"><rect x="6" y="6" width="388" height="188" rx="3" pathLength="1"/><line x1="200" y1="6" x2="200" y2="194" pathLength="1"/><circle cx="200" cy="100" r="34" pathLength="1"/><rect x="6" y="52" width="58" height="96" pathLength="1"/><rect x="336" y="52" width="58" height="96" pathLength="1"/><rect x="6" y="78" width="20" height="44" pathLength="1"/><rect x="374" y="78" width="20" height="44" pathLength="1"/><path d="M64 78a26 26 0 0 1 0 44M336 78a26 26 0 0 0 0 44" pathLength="1"/></g><circle cx="200" cy="100" r="3" class="spot"/></svg><div class="hero-top"><div><div class="kicker">' + (liveNow.length ? 'Matchday ' + liveNow[0].md + ' · In play' : lmd ? 'Matchday ' + lmd + ' · Full time' : 'League phase') + '</div><h1 id="hero-h">' + (liveNow.length ? 'Live now' : lmd ? 'Results' : 'Season ' + esc(D.meta.season)) + '</h1></div><div class="season">League phase<br>' + esc(D.meta.season) + '</div></div>';
   if (results.length) {
-    h += '<div class="ticker-h"><span class="lbl">' + results.length + ' matches</span><button class="linkbtn" type="button" data-act="goto-fixtures" data-md="' + lmd + '">All fixtures</button></div>';
+    h += '<div class="ticker-h"><span class="lbl">' + (liveNow.length ? '<span class="live-pill"><i></i>' + liveNow.length + ' live</span>' : results.length + ' matches') + '</span><button class="linkbtn" type="button" data-act="goto-fixtures" data-md="' + (liveNow.length ? liveNow[0].md : lmd) + '">All fixtures</button></div>';
     h += '<div class="ticker" role="list">' + results.map(scoreCard).join('') + '</div>';
   }
   h += '<div class="next">';
@@ -1151,8 +1166,8 @@ function renderHome(){
   tickCountdown();
 }
 function scoreCard(f){
-  const hw = f.hs > f.as, aw = f.as > f.hs;
-  return '<button class="score-card" role="listitem" type="button" data-act="match" data-id="' + esc(f.id) + '" aria-label="' + esc(T.get(f.home).name + ' ' + f.hs + ', ' + T.get(f.away).name + ' ' + f.as) + '"><div class="sc-meta"><span>' + esc(fmtDay(f.date)) + '</span><span>FT</span></div>' +
+  const lv = f.status === 'LIVE', hw = !lv && f.hs > f.as, aw = !lv && f.as > f.hs;
+  return '<button class="score-card' + (lv ? ' live' : '') + '" role="listitem" type="button" data-act="match" data-id="' + esc(f.id) + '" aria-label="' + esc((lv ? 'Live, ' + (f.clock || '') + ': ' : '') + T.get(f.home).name + ' ' + f.hs + ', ' + T.get(f.away).name + ' ' + f.as) + '"><div class="sc-meta"><span>' + esc(fmtDay(f.date)) + '</span><span>' + (lv ? liveTag(f) : 'FT') + '</span></div>' +
     '<div class="sc-row' + (aw ? ' lose' : '') + '">' + crest(f.home, 'sm') + '<span class="nm">' + esc(T.get(f.home).name) + '</span><span class="g">' + f.hs + '</span></div>' +
     '<div class="sc-row' + (hw ? ' lose' : '') + '">' + crest(f.away, 'sm') + '<span class="nm">' + esc(T.get(f.away).name) + '</span><span class="g">' + f.as + '</span></div></button>';
 }
@@ -1211,7 +1226,7 @@ function fixturesHtml(){
   let h = '<div class="md-pick" role="group" aria-label="Matchday">';
   for (let m = 1; m <= maxMd; m++) {
     const has = mds.includes(m);
-    h += '<button class="md-btn' + (has ? '' : ' dim') + '" type="button" data-act="md" data-md="' + m + '" aria-pressed="' + (S.fxMd === m) + '"' + (has ? '' : ' disabled') + '><span>MD</span><b>' + m + '</b><span>' + (m === nx ? 'Next' : has ? (D.fixtures.some(f => f.md === m && f.status !== 'FT') ? 'Sched' : 'FT') : '–') + '</span></button>';
+    h += '<button class="md-btn' + (has ? '' : ' dim') + '" type="button" data-act="md" data-md="' + m + '" aria-pressed="' + (S.fxMd === m) + '"' + (has ? '' : ' disabled') + '><span>MD</span><b>' + m + '</b><span>' + (D.fixtures.some(f => f.md === m && f.status === 'LIVE') ? '<span class="lv-tag" style="color:inherit"><i></i>Live</span>' : m === nx ? 'Next' : has ? (D.fixtures.some(f => f.md === m && f.status !== 'FT') ? 'Sched' : 'FT') : '–') + '</span></button>';
   }
   h += '</div>';
   const list = D.fixtures.filter(f => f.md === S.fxMd);
@@ -1219,9 +1234,9 @@ function fixturesHtml(){
   days.forEach(d => {
     h += '<div class="fx-day"><h3>' + esc(fmtDay(d) || 'Date TBC') + '</h3><div class="fx-list">';
     h += list.filter(f => f.date === d).map(f => {
-      const ft = f.status === 'FT', hw = ft && f.hs > f.as, aw = ft && f.as > f.hs;
-      return '<div class="fx"><button class="side h' + (aw ? ' lose' : '') + '" type="button" data-act="club" data-id="' + esc(f.home) + '"><span>' + esc(T.get(f.home).name) + '</span>' + crest(f.home) + '</button><button type="button" class="mid" data-act="match" data-id="' + esc(f.id) + '" aria-label="' + (ft ? 'Match details' : 'Match preview') + '">' +
-        (ft ? '<span class="score">' + f.hs + '–' + f.as + '</span><span class="st">' + (matchOf(f.id) ? 'Stats ›' : 'Full time') + '</span>' : '<span class="time">' + esc(f.time || 'TBC') + '</span><span class="st">Preview ›</span>') +
+      const ft = f.status === 'FT', lv = f.status === 'LIVE', hw = ft && f.hs > f.as, aw = ft && f.as > f.hs;
+      return '<div class="fx"><button class="side h' + (aw ? ' lose' : '') + '" type="button" data-act="club" data-id="' + esc(f.home) + '"><span>' + esc(T.get(f.home).name) + '</span>' + crest(f.home) + '</button><button type="button" class="mid" data-act="match" data-id="' + esc(f.id) + '" aria-label="' + (ft ? 'Match details' : lv ? 'Live match' : 'Match preview') + '">' +
+        (ft ? '<span class="score">' + f.hs + '–' + f.as + '</span><span class="st">' + (matchOf(f.id) || f.eid ? 'Stats ›' : 'Full time') + '</span>' : lv ? '<span class="score">' + f.hs + '–' + f.as + '</span><span class="st">' + liveTag(f) + '</span>' : '<span class="time">' + esc(f.time || 'TBC') + '</span><span class="st">' + (f.note ? esc(f.note) : 'Preview ›') + '</span>') +
         '</button><button class="side' + (hw ? ' lose' : '') + '" type="button" data-act="club" data-id="' + esc(f.away) + '">' + crest(f.away) + '<span>' + esc(T.get(f.away).name) + '</span></button></div>';
     }).join('');
     h += '</div></div>';
@@ -1708,9 +1723,9 @@ const SHEETS = {
     let h = '<div class="sh-hero">' + crest(id, 'xl') + '<div><div class="ttl">' + esc(t.name) + '</div><div class="sub">' + esc(t.country) + (s ? ' · ' + ordinal(s.pos) + ' · ' + s.pts + ' pts' : '') + '</div>' + (s ? '<div style="margin-top:8px">' + formPills(s.form, 6) + '</div>' : '') + '</div></div>';
     if (s) h += '<div class="sgrid"><div class="stat"><b>' + s.w + '–' + s.d + '–' + s.l + '</b><span>W–D–L</span></div><div class="stat"><b>' + s.gf + '</b><span>Scored</span></div><div class="stat"><b>' + s.ga + '</b><span>Conceded</span></div><div class="stat hl"><b>' + s.pts + '</b><span>Points</span></div></div><p class="hint" style="margin-top:10px">' + (s.pos <= 8 ? 'Currently in the Round of 16 places.' : s.pos <= 24 ? 'Currently in the knockout play-off places.' : 'Currently outside the qualification places.') + '</p>';
     if (fx.length) h += '<div class="sh-sec"><h3>Fixtures & results</h3>' + fx.map(f => {
-      const home = f.home === id, opp = home ? f.away : f.home, ft = f.status === 'FT';
+      const home = f.home === id, opp = home ? f.away : f.home, ft = f.status === 'FT', lvx = f.status === 'LIVE';
       const gf = home ? f.hs : f.as, ga = home ? f.as : f.hs, r = ft ? (gf > ga ? 'W' : gf === ga ? 'D' : 'L') : '';
-      return '<button type="button" class="res-row" data-act="match" data-id="' + esc(f.id) + '" data-push="1"><span class="md">MD' + f.md + '</span>' + crest(opp, 'sm') + '<span class="opp">' + (home ? 'v ' : '@ ') + esc(T.get(opp).name) + '</span><span class="sc">' + (ft ? gf + '–' + ga : '<span class="faint" style="font:600 13px var(--ff-data)">' + esc(fmtDay(f.date)) + '</span>') + '</span>' + (r ? '<span class="fp ' + r + '">' + r + '</span>' : '<span class="faint">›</span>') + '</button>';
+      return '<button type="button" class="res-row" data-act="match" data-id="' + esc(f.id) + '" data-push="1"><span class="md">MD' + f.md + '</span>' + crest(opp, 'sm') + '<span class="opp">' + (home ? 'v ' : '@ ') + esc(T.get(opp).name) + '</span><span class="sc">' + (ft ? gf + '–' + ga : lvx ? gf + '–' + ga + ' ' + liveTag(f) : '<span class="faint" style="font:600 13px var(--ff-data)">' + esc(fmtDay(f.date)) + '</span>') + '</span>' + (r ? '<span class="fp ' + r + '">' + r + '</span>' : '<span class="faint">›</span>') + '</button>';
     }).join('') + '</div>' + clubMatchSection(id);
     h += '<div class="sh-sec"><h3>Squad · ' + squad.length + ' players</h3>';
     if (squad.length) h += '<div class="sq-head" aria-hidden="true"><span>Pos</span><span>Player</span><span>G</span><span>A</span><span>Pts</span></div>' + squad.map(p => '<button class="sq-row" type="button" data-act="player" data-id="' + esc(p.id) + '" data-push="1"><span class="pos-tag">' + p.pos + '</span><span class="nm">' + esc(p.name) + '</span><span class="v">' + p.goals + '</span><span class="v">' + p.assists + '</span><span class="v on">' + p.fp + '</span></button>').join('');
@@ -1922,7 +1937,7 @@ function timeline(m, f){
     if (!ht && e.t > 45.99) { h += '<div class="tl-ht">Half-time</div>'; ht = true; }
     h += '<div class="tl-row ' + e.s + (e.k === 'goal' ? ' is-goal' : '') + '"><div class="tl-h">' + (e.s === 'h' ? '<div class="tl-txt">' + e.html + '</div>' + icon(e.k) : '') + '</div><div class="tl-m">' + minTxt(e.m) + '</div><div class="tl-a">' + (e.s === 'a' ? icon(e.k) + '<div class="tl-txt">' + e.html + '</div>' : '') + '</div></div>';
   });
-  return h + '<div class="tl-ht">Full time</div></div></div>';
+  return h + '<div class="tl-ht">' + (f.status === 'LIVE' ? 'Live · ' + esc(f.clock || '') : 'Full time') + '</div></div></div>';
 }
 function minutesTable(m, f, s){
   const side = m.lineups && m.lineups[s]; if (!side) return '';
@@ -1990,16 +2005,18 @@ function previewModel(f){
 Object.assign(SHEETS, {
   match(fid){
     const f = FX.get(fid); if (!f) return null;
-    if (f.status !== 'FT') return SHEETS.preview(fid);
+    if (f.status !== 'FT' && f.status !== 'LIVE') return SHEETS.preview(fid);
+    lvWatch(fid);
     const m = matchOf(fid), th = T.get(f.home), ta = T.get(f.away);
-    let h = '<div class="mh"><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.home) + '" data-push="1">' + crest(f.home, 'lg') + '<span>' + esc(th.name) + '</span></button><div class="mh-s"><b>' + f.hs + '<i>–</i>' + f.as + '</b><span>Full time</span></div><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.away) + '" data-push="1">' + crest(f.away, 'lg') + '<span>' + esc(ta.name) + '</span></button></div>';
+    let h = '<div class="mh"><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.home) + '" data-push="1">' + crest(f.home, 'lg') + '<span>' + esc(th.name) + '</span></button><div class="mh-s"><b>' + f.hs + '<i>–</i>' + f.as + '</b><span>' + (f.status === 'LIVE' ? liveTag(f) : 'Full time') + '</span></div><button type="button" class="mh-t" data-act="club" data-id="' + esc(f.away) + '" data-push="1">' + crest(f.away, 'lg') + '<span>' + esc(ta.name) + '</span></button></div>';
     const meta = ['Matchday ' + f.md, fmtDay(f.date) + (f.time ? ' · ' + f.time + ' CET' : '')].concat(m ? [m.venue, m.referee ? 'Referee: ' + m.referee : '', m.attendance ? 'Att. ' + Number(m.attendance).toLocaleString('en-GB') : ''] : []).filter(Boolean);
     h += '<p class="mh-meta">' + meta.map(esc).join(' · ') + '</p>';
     if (m && m.goals && m.goals.length) {
       const sc = s => m.goals.filter(g => (g.team === 'a' ? 'a' : 'h') === s).map(g => esc(surnameOf(g.player)) + ' ' + minTxt(g.min) + (g.type === 'pen' ? ' (p)' : g.type === 'og' ? ' (og)' : '')).join(', ');
       h += '<div class="mh-sc"><span>' + sc('h') + '</span><i class="ev-i goal" aria-hidden="true"></i><span>' + sc('a') + '</span></div>';
     }
-    if (!m) return { title: 'Match', html: h + '<div class="panel empty" style="margin-top:14px"><b>Match details coming soon</b>Line-ups, minutes and team stats for this match haven’t been added yet.</div>' };
+    if (!m) return { title: f.status === 'LIVE' ? 'Live match' : 'Match', html: h + (f.eid && LV.ok ? '<div class="panel empty" style="margin-top:14px"><b>Loading match details…</b>Fetching line-ups, events and stats from ESPN.</div>' : '<div class="panel empty" style="margin-top:14px"><b>Match details coming soon</b>Line-ups, minutes and team stats for this match haven’t been added yet.</div>') };
+    if (f.status === 'LIVE') h += '<p class="lv-note"><span class="dot"></span>Live from ESPN · refreshes every 30 seconds</p>';
     if (m.summary) h += '<p class="mh-sum">' + esc(m.summary) + '</p>';
     h += timeline(m, f) + statBars(m.stats, f);
     if (m.lineups && (m.lineups.h || m.lineups.a)) {
@@ -2008,8 +2025,8 @@ Object.assign(SHEETS, {
       const sp = s => lineupXY(m.lineups[s]).map(p => ({ x: p.x, y: p.y, w: (p.min != null ? +p.min : 90) / 90, r: 13 }));
       h += '<div class="sh-sec"><h3>Team position maps</h3><div class="shape-pair">' + (m.lineups.h ? shapeMap(sp('h'), heatColor(f.home), th.name) : '') + (m.lineups.a ? shapeMap(sp('a'), heatColor(f.away), ta.name) : '') + '</div>' + SHAPE_NOTE + '</div>';
     }
-    if (m.source && m.source.url) h += '<div class="sh-sec"><a class="btn block" href="' + esc(m.source.url) + '" target="_blank" rel="noopener">Full match report on ' + esc(m.source.name || 'source') + ' ↗</a></div>';
-    return { title: 'Match', html: h };
+    if (m.source && m.source.url) h += '<div class="sh-sec"><a class="btn block" href="' + esc(m.source.url) + '" target="_blank" rel="noopener">' + (f.status === 'LIVE' ? 'Follow live on ' : 'Full match report on ') + esc(m.source.name || 'source') + ' ↗</a></div>';
+    return { title: f.status === 'LIVE' ? 'Live match' : 'Match', html: h };
   },
   preview(fid){
     const f = FX.get(fid); if (!f) return null; const th = T.get(f.home), ta = T.get(f.away), H = stOf(f.home), A = stOf(f.away), md = previewModel(f);
@@ -2207,11 +2224,269 @@ async function initMode(){
 }
 
 /* ================= boot ================= */
+/* ================= Live layer: ESPN public feed (scores, events, line-ups, stats, table, news) =================
+   The baked data is the verified fallback. Live data is merged on top; if ESPN is unreachable nothing changes. */
+const LV = { base: null, baseM: {}, ok: false, at: 0, ev: {}, sums: {}, stand: null, standAt: 0, news: null, newsAt: 0, timer: null, busy: false, full: 0, fails: 0, sig: '', lastRaw: null, want: new Set(), started: false };
+const ESPN_SITE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/';
+const ESPN_STAND = 'https://site.api.espn.com/apis/v2/sports/soccer/uefa.champions/standings';
+const LV_MONTHS = ['202609', '202610', '202611', '202612', '202701'];
+const LV_VER = 2;
+async function lvGet(u){
+  const c = typeof AbortController === 'function' ? new AbortController() : null; const t = setTimeout(() => { if (c) c.abort(); }, 12000);
+  try { const r = await fetch(u, c ? { signal: c.signal } : {}); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); } finally { clearTimeout(t); }
+}
+const lvTeam = id => (((LV.base && LV.base.espn) || {}).teams || {})[String(id)] || null;
+const lvWk = ds => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ds || ''); return m ? Math.floor((Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5 + 3) / 7) : null; };
+function lvCet(iso){
+  const t = Date.parse(iso); if (!Number.isFinite(t)) return null; const u = new Date(t);
+  const c = new Date(t + cetOffset(u.getUTCFullYear(), u.getUTCMonth() + 1, u.getUTCDate()) * 36e5), p = n => String(n).padStart(2, '0');
+  return { date: c.getUTCFullYear() + '-' + p(c.getUTCMonth() + 1) + '-' + p(c.getUTCDate()), time: p(c.getUTCHours()) + ':' + p(c.getUTCMinutes()), ts: t };
+}
+function lvMin(v){ const m = /(\d+)'?\s*(?:\+\s*(\d+))?/.exec(String(v || '')); return m ? m[1] + (m[2] ? '+' + m[2] : '') : ''; }
+function lvParse(e){
+  const c = (e.competitions || [])[0]; if (!c) return null;
+  const hc = (c.competitors || []).find(x => x.homeAway === 'home'), ac = (c.competitors || []).find(x => x.homeAway === 'away'); if (!hc || !ac) return null;
+  const home = lvTeam(hc.team && hc.team.id), away = lvTeam(ac.team && ac.team.id); if (!home || !away || home === away) return null;
+  const st = e.status || c.status || {}, ty = st.type || {}, nm = String(ty.name || '');
+  let status = ty.completed ? 'FT' : ty.state === 'in' ? 'LIVE' : 'SCHED';
+  if (/POSTPON|CANCEL|SUSPEND|ABANDON|DELAY/.test(nm) && !ty.completed) status = 'SCHED';
+  const cp = lvCet(e.date) || {};
+  let clock = '';
+  if (status === 'LIVE') clock = /HALF/.test(nm) || /^HT$/i.test(ty.shortDetail || '') ? 'HT' : (lvMin(st.displayClock || ty.shortDetail) ? lvMin(st.displayClock || ty.shortDetail).replace('+', '′+') + '′' : 'LIVE');
+  return { eid: String(e.id), home, away, status, hs: status === 'SCHED' ? null : num(hc.score, 0), as: status === 'SCHED' ? null : num(ac.score, 0), clock, note: /POSTPON/.test(nm) ? 'Postponed' : '', date: cp.date || '', time: cp.time || '', ts: cp.ts || 0, wk: lvWk(cp.date) };
+}
+function lvParseStand(j){
+  const ch = (j && j.children) || []; const ent = (ch[0] && ch[0].standings && ch[0].standings.entries) || [];
+  const out = ent.map(x => { const id = lvTeam(x.team && x.team.id); if (!id) return null; const s = {}; (x.stats || []).forEach(k => { s[k.name] = k.value; });
+    return { teamId: id, pos: num(s.rank, 0), p: num(s.gamesPlayed), w: num(s.wins), d: num(s.ties), l: num(s.losses), gf: num(s.pointsFor), ga: num(s.pointsAgainst), gd: num(s.pointDifferential), pts: num(s.points) }; }).filter(Boolean);
+  return out.length >= 30 && out.every(s => s.pos >= 1) ? out : null;
+}
+function lvTag(head, desc){ const h = head.toLowerCase(), t = h + ' ' + String(desc || '').toLowerCase();
+  if (/injur|sideline|ruled out|surgery|hamstring|ligament|knee|ankle|fitness doubt/.test(t)) return 'Injury';
+  if (/transfer|signs |signing|loan move|contract|release clause/.test(h)) return 'Transfer';
+  if (/record|history|first time|makes history|unwanted/.test(h)) return 'Records';
+  if (/preview|ahead of|what to expect|predict/.test(h)) return 'Preview';
+  if (/what if|talking points|main characters|analysis|ratings|explained|why |how /.test(h)) return 'Analysis';
+  if (/ beat|beats|draw|win |wins|won |win over|defeat|thrash|stun|rout|comeback|rally|hold off|seal|score|double|recap|loss|haunts|bounce back|\d+-\d+|\d-goal/.test(h)) return 'Match report';
+  return 'Analysis'; }
+function lvParseNews(j){
+  return ((j && j.articles) || []).map(a => {
+    const teams = Array.from(new Set((a.categories || []).filter(c => c.type === 'team').map(c => lvTeam(c.teamId != null ? c.teamId : c.team && c.team.id)).filter(Boolean)));
+    const url = a.links && a.links.web && a.links.web.href;
+    if (!a.headline || !url || !teams.length || a.type === 'Media') return null;
+    const pub = a.published || a.lastModified || '', cp = lvCet(pub);
+    return { id: 'espn-' + a.id, title: a.headline, summary: a.description || '', date: cp ? cp.date : String(pub).slice(0, 10), source: 'ESPN', url, tag: lvTag(a.headline, a.description), teamIds: teams, live: true };
+  }).filter(Boolean);
+}
+/* ---- ESPN match summary -> app match format ---- */
+const LV_DEPTH = { G: 0, GK: 0, SW: 1, CD: 1, CB: 1, D: 1, RB: 1.1, LB: 1.1, RWB: 1.6, LWB: 1.6, WB: 1.6, DM: 2, CDM: 2, CM: 2.5, M: 2.5, RM: 2.6, LM: 2.6, AM: 3, CAM: 3, RW: 3.3, LW: 3.3, F: 4, CF: 4, ST: 4, RF: 4, LF: 4, FW: 4 };
+function lvPid(aid, name, tid){
+  const map = (LV.base.espn || {}).athletes || {}, g = map[String(aid)];
+  if (g && P.has(g) && P.get(g).teamId === tid) return g;
+  const n = fold2(name); const hit = [...P.values()].filter(p => p.teamId === tid && fold2(p.name) === n);
+  return hit.length === 1 ? hit[0].id : null;
+}
+function lvConvert(s, eid){
+  const comp = ((s.header || {}).competitions || [])[0] || {}, sty = ((comp.status || {}).type) || {};
+  const side = {}, tidOf = { h: null, a: null };
+  (comp.competitors || []).forEach(c => { const sd = c.homeAway === 'home' ? 'h' : 'a'; side[String(c.team && c.team.id)] = sd; tidOf[sd] = lvTeam(c.team && c.team.id); });
+  if (!tidOf.h || !tidOf.a) return null;
+  const done = !!sty.completed, ko = Date.parse(comp.date || '') || 0;
+  const nowMin = done ? 90 : Math.min(90, parseInt(/HALF/.test(sty.name || '') ? 45 : lvMin((comp.status || {}).displayClock), 10) || 0);
+  const gi = s.gameInfo || {}, v = gi.venue || {}, off = (gi.officials || [])[0] || {};
+  const m = { venue: [v.fullName, v.address && v.address.city].filter(Boolean).join(', '), referee: off.displayName || off.fullName || '', attendance: gi.attendance || null,
+    stats: {}, goals: [], cards: [], lineups: {}, source: { name: 'ESPN', url: 'https://www.espn.com/soccer/match/_/gameId/' + eid }, espn: true, final: done && Date.now() - ko > 3 * 36e5, done };
+  const box = (s.boxscore && s.boxscore.teams) || [];
+  const val = (sd, name) => { const t = box.find(b => side[String(b.team && b.team.id)] === sd); const x = t && (t.statistics || []).find(q => q.name === name); const n = x ? parseFloat(x.displayValue) : NaN; return Number.isFinite(n) ? n : null; };
+  [['possession', 'possessionPct'], ['shots', 'totalShots'], ['sot', 'shotsOnTarget'], ['corners', 'wonCorners'], ['fouls', 'foulsCommitted'], ['offsides', 'offsides'], ['saves', 'saves']].forEach(([k, n]) => {
+    const a = val('h', n), b = val('a', n); m.stats[k] = a == null && b == null ? null : [Math.round(a || 0), Math.round(b || 0)]; });
+  m.stats.xg = null;
+  const kev = s.keyEvents || [], subOff = {};
+  kev.forEach(e => { const ty = String((e.type || {}).type || '').toLowerCase(), pa = e.participants || [];
+    if (ty === 'substitution' && pa[0] && pa[1]) subOff[pa[0].athlete.id] = pa[1].athlete.displayName; });
+  (s.rosters || []).forEach(r => {
+    const sd = r.homeAway === 'home' ? 'h' : 'a', tid = tidOf[sd], ro = r.roster || []; if (!ro.length) return;
+    const clocks = (p, k) => (p.plays || []).filter(q => q[k]).map(q => parseInt(lvMin(q.clock && q.clock.displayValue), 10)).filter(Number.isFinite);
+    const st = ro.filter(p => p.starter); if (!st.length) return;
+    const abbr = p => String((p.position || {}).abbreviation || '').toUpperCase();
+    const gk = st.find(p => /^G/.test(abbr(p))) || st.find(p => String(p.formationPlace) === '1') || st[0];
+    const out = st.filter(p => p !== gk).map(p => { const [b, sf] = abbr(p).split('-'); return { p, d: LV_DEPTH[b] != null ? LV_DEPTH[b] : 2.5, l: sf === 'R' ? .3 : sf === 'L' ? .7 : /^R/.test(b) ? 0 : /^L/.test(b) ? 1 : .5, fp: +p.formationPlace || 0 }; })
+      .sort((x, y) => x.d - y.d || x.fp - y.fp);
+    let lines = String(r.formation || '').split(/[-–]/).map(Number).filter(n => n > 0);
+    if (lines.reduce((a, b) => a + b, 0) !== out.length) { const c = [0, 0, 0]; out.forEach(x => c[x.d < 1.8 ? 0 : x.d < 3.5 ? 1 : 2]++); lines = c.filter(n => n > 0); }
+    const xi = [], mk = (p, pos) => { const offs = clocks(p, 'substitution'), reds = clocks(p, 'redCard'); const end = Math.min.apply(null, (p.subbedOut ? offs.slice(0, 1) : []).concat(reds, [nowMin]));
+      return { name: p.athlete.displayName, playerId: lvPid(p.athlete.id, p.athlete.displayName, tid), pos, shirt: p.jersey != null ? +p.jersey : null, min: Math.max(0, Math.min(90, end)) }; };
+    xi.push(mk(gk, 'GK')); let k = 0;
+    lines.forEach((n, i) => { out.slice(k, k + n).sort((x, y) => x.l - y.l).forEach(x => xi.push(mk(x.p, i === 0 ? 'DEF' : i === lines.length - 1 ? 'FWD' : 'MID'))); k += n; });
+    const subs = ro.filter(p => !p.starter && p.subbedIn).map(p => { const cl = clocks(p, 'substitution'), on = cl[0] != null ? Math.min(90, cl[0]) : nowMin, reds = clocks(p, 'redCard');
+      const end = Math.min.apply(null, (p.subbedOut && cl[1] != null ? [cl[1]] : []).concat(reds, [nowMin]));
+      return { name: p.athlete.displayName, playerId: lvPid(p.athlete.id, p.athlete.displayName, tid), on: String(on), off: subOff[p.athlete.id] || '', min: Math.max(0, Math.min(90, end) - on), shirt: p.jersey != null ? +p.jersey : null }; })
+      .sort((a, b) => +a.on - +b.on);
+    m.lineups[sd] = { formation: lines.join('-'), xi, subs };
+  });
+  kev.forEach(e => {
+    const ty = String((e.type || {}).type || '').toLowerCase(), sd = side[String(e.team && e.team.id)], pa = e.participants || [];
+    const nm = i => pa[i] && pa[i].athlete ? pa[i].athlete.displayName : '', aid = i => pa[i] && pa[i].athlete ? pa[i].athlete.id : null, mn = lvMin(e.clock && e.clock.displayValue);
+    if (!sd || !nm(0)) return;
+    const goal = (e.scoringPlay === true || /goal|penalty---scored/.test(ty)) && !/miss|saved|disallow|no-goal|shootout/.test(ty);
+    if (goal) { const og = /own/.test(ty), pen = /penalty/.test(ty);
+      m.goals.push({ min: mn, team: sd, player: nm(0), assist: !og && nm(1) ? nm(1) : null, type: og ? 'og' : pen ? 'pen' : null, _a: [aid(0), aid(1)] }); }
+    else if (/yellow/.test(ty)) m.cards.push({ min: mn, team: sd, player: nm(0), playerId: lvPid(aid(0), nm(0), tidOf[sd]), card: 'Y' });
+    else if (/red/.test(ty)) m.cards.push({ min: mn, team: sd, player: nm(0), playerId: lvPid(aid(0), nm(0), tidOf[sd]), card: 'R' });
+  });
+  // goal team = side credited. For own goals ESPN may tag either side: check against the score and flip if needed.
+  const sc = { h: num(((comp.competitors || []).find(c => c.homeAway === 'home') || {}).score), a: num(((comp.competitors || []).find(c => c.homeAway === 'away') || {}).score) };
+  const cnt = sd => m.goals.filter(g => g.team === sd).length;
+  if ((cnt('h') !== sc.h || cnt('a') !== sc.a) && m.goals.some(g => g.type === 'og')) m.goals.forEach(g => { if (g.type === 'og') g.team = g.team === 'h' ? 'a' : 'h'; });
+  m.goals.forEach(g => { const own = g.type === 'og' ? (g.team === 'h' ? 'a' : 'h') : g.team;
+    g.playerId = lvPid(g._a[0], g.player, tidOf[own]); g.assistId = g.assist ? lvPid(g._a[1], g.assist, tidOf[g.team]) : null; delete g._a; });
+  m.scoreOk = cnt('h') === sc.h && cnt('a') === sc.a;
+  return m;
+}
+/* ---- cache of converted summaries (finished matches never change once final) ---- */
+function lvLoadCache(){ try { const o = JSON.parse(localStorage.getItem('ml.lv.sums') || '{}'); if (o && o.v === LV_VER) LV.sums = o.s || {}; } catch (e) {} }
+function lvSaveCache(){ try { const s = {}; Object.keys(LV.sums).forEach(k => { if (LV.sums[k].final) s[k] = LV.sums[k]; }); localStorage.setItem('ml.lv.sums', JSON.stringify({ v: LV_VER, s })); } catch (e) {} }
+async function lvFetchSum(eid){
+  try { const s = await lvGet(ESPN_SITE + 'summary?event=' + encodeURIComponent(eid)); const m = lvConvert(s, eid); if (m) LV.sums[eid] = m; return !!m; } catch (e) { return false; }
+}
+async function lvSummaries(){
+  const fxByEid = {}; (D ? D.fixtures : []).forEach(f => { if (f.eid) fxByEid[f.eid] = f; });
+  const need = Object.values(LV.ev).filter(e => {
+    if (e.status === 'SCHED') return false; const f = fxByEid[e.eid]; if (f && LV.baseM[f.id]) return false;
+    const have = LV.sums[e.eid];
+    if (e.status === 'LIVE') return LV.want.has(e.eid);
+    return !have || !have.final;
+  }).map(e => e.eid);
+  LV.want.forEach(eid => { if (!need.includes(eid) && LV.ev[eid] && LV.ev[eid].status === 'LIVE') need.push(eid); });
+  const q = need.slice(0, 40); let i = 0;
+  await Promise.all([0, 1, 2, 3].map(async () => { while (i < q.length) { const eid = q[i++]; await lvFetchSum(eid); } }));
+  if (q.length) lvSaveCache();
+}
+/* ---- merge baked data + live data ---- */
+function lvBuild(){
+  const B = LV.base;
+  const raw = JSON.parse(JSON.stringify(Object.assign({}, B, { matches: undefined, espn: undefined })));
+  const byPair = new Map(raw.fixtures.map(f => [f.home + '|' + f.away, f]));
+  const wkMd = {}; raw.fixtures.forEach(f => { const w = lvWk(f.date); if (w != null) wkMd[w] = f.md; });
+  const evs = Object.values(LV.ev);
+  if (LV.full) {
+    const maxW = Math.max.apply(null, Object.keys(wkMd).map(Number)), maxMd = Math.max.apply(null, raw.fixtures.map(f => f.md).concat([0]));
+    Array.from(new Set(evs.map(e => e.wk).filter(w => w != null && w > maxW))).sort((a, b) => a - b).forEach((w, i) => { if (maxMd + i + 1 <= 8) wkMd[w] = maxMd + i + 1; });
+  }
+  const bakedFt = new Set(raw.fixtures.filter(f => f.status === 'FT').map(f => f.id));
+  const prevScores = {};
+  evs.forEach(e => {
+    let f = byPair.get(e.home + '|' + e.away);
+    if (!f) { const md = wkMd[e.wk]; if (!md || !LV.full) return; f = { id: 'md' + md + '-' + e.home + '-' + e.away, md, home: e.home, away: e.away, hs: null, as: null, status: 'SCHED' }; raw.fixtures.push(f); byPair.set(e.home + '|' + e.away, f); }
+    f.eid = e.eid;
+    if (bakedFt.has(f.id) && e.status !== 'FT') return;
+    if (e.date) { f.date = e.date; f.time = e.time; }
+    f.status = e.status; f.hs = e.hs; f.as = e.as; f.clock = e.clock; f.note = e.note;
+  });
+  // matches: baked first, ESPN for the rest
+  const mx = {}; raw.fixtures.forEach(f => { if (f.eid && LV.sums[f.eid] && !LV.baseM[f.id] && f.status !== 'SCHED') mx[f.id] = LV.sums[f.eid]; });
+  // player totals: add finished ESPN-only matches to the verified baked totals
+  const PM = new Map(raw.players.map(p => [p.id, p]));
+  raw.fixtures.forEach(f => {
+    const m = mx[f.id]; if (!m || f.status !== 'FT' || !m.done || !m.scoreOk) return;
+    ['h', 'a'].forEach(sd => { const L = m.lineups && m.lineups[sd]; if (!L) return; const conc = sd === 'h' ? f.as : f.hs;
+      (L.xi || []).concat(L.subs || []).forEach(x => { const p = x.playerId && PM.get(x.playerId); if (!p) return; p.apps = num(p.apps) + 1; p.mins = num(p.mins) + num(x.min); if (conc === 0 && num(x.min) >= 60) p.cleanSheets = num(p.cleanSheets) + 1; }); });
+    (m.goals || []).forEach(g => { const s = g.type !== 'og' && g.playerId && PM.get(g.playerId), a = g.assistId && PM.get(g.assistId); if (s) s.goals = num(s.goals) + 1; if (a) a.assists = num(a.assists) + 1; });
+    const reds = new Set(), yel = {};
+    (m.cards || []).forEach(c => { const p = c.playerId && PM.get(c.playerId); if (!p) return; if (c.card === 'R') { p.red = num(p.red) + 1; reds.add(p.id); } else yel[p.id] = (yel[p.id] || 0) + 1; });
+    Object.keys(yel).forEach(id => { const p = PM.get(id); p.yellow = num(p.yellow) + Math.max(0, yel[id] - (reds.has(id) ? 1 : 0)); });
+  });
+  // table: ESPN standings when at least as current as the results we have; otherwise compute from results
+  const ft = raw.fixtures.filter(f => f.status === 'FT');
+  const calc = computeStandings(raw.teams, ft.map(f => ({ home: f.home, away: f.away, hs: +f.hs, as: +f.as, status: 'FT', md: f.md })).sort((a, b) => a.md - b.md));
+  const form = {}; calc.forEach(s => form[s.teamId] = s.form);
+  const played = ft.length * 2;
+  if (LV.stand && LV.stand.reduce((a, s) => a + s.p, 0) >= played) raw.standings = LV.stand.map(s => Object.assign({}, s, { form: form[s.teamId] || [] }));
+  else if (ft.length > (B.fixtures || []).filter(f => f.status === 'FT').length) raw.standings = calc;
+  // news: ESPN stories first, de-duplicated
+  if (LV.news && LV.news.length) { const seen = new Set(); raw.news = LV.news.slice(0, 24).concat(raw.news || []).filter(n => { const k = fold(n.title); if ((n.url && seen.has(n.url)) || seen.has(k)) return false; if (n.url) seen.add(n.url); seen.add(k); return true; }).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 40); }
+  const today = new Date(), p2 = n => String(n).padStart(2, '0');
+  raw.meta.asOf = today.getFullYear() + '-' + p2(today.getMonth() + 1) + '-' + p2(today.getDate());
+  raw.meta.nextMatchday = null; raw.meta.matchdaysPlayed = Math.max.apply(null, [0].concat(ft.map(f => f.md)));
+  if (!(raw.meta.sources || []).some(s => /espn/i.test(s.name))) raw.meta.sources = (raw.meta.sources || []).concat([{ name: 'ESPN (live)', url: 'https://www.espn.com/soccer/league/_/name/uefa.champions' }]);
+  return { raw, mx };
+}
+function lvApply(){
+  if (!LV.base) return;
+  let built; try { built = lvBuild(); } catch (e) { console.warn('live merge failed', e); return; }
+  const { raw, mx } = built;
+  const sig = JSON.stringify([raw.fixtures.map(f => [f.id, f.status, f.hs, f.as, f.clock, f.date, f.time]), (raw.news || []).map(n => n.id), (raw.standings || []).map(s => s.teamId + s.pts + '/' + s.p), Object.keys(mx).map(k => k + (mx[k].goals || []).length + (mx[k].cards || []).length + JSON.stringify(mx[k].stats)), raw.meta.asOf]);
+  window.UCL_DATA.matches = Object.assign({}, mx, LV.baseM);
+  if (sig === LV.sig) { renderChrome(); return; }
+  const first = !LV.sig; LV.sig = sig;
+  const prev = new Map(D ? D.fixtures.map(f => [f.id, f]) : []);
+  try { T.clear(); P.clear(); FX.clear(); D = normalize(raw); LV.lastRaw = raw; }
+  catch (e) { console.warn('live normalize failed', e); T.clear(); P.clear(); FX.clear(); D = normalize(LV.lastRaw || LV.base); return; }
+  PID_CACHE.clear(); RIVALS = null;
+  if (!first) { const goals = D.fixtures.filter(f => { const o = prev.get(f.id); return o && (f.status === 'LIVE' || f.status === 'FT') && f.hs != null && (o.hs != null ? f.hs + f.as > o.hs + o.as : f.hs + f.as > 0); });
+    if (goals.length) { const f = goals[goals.length - 1]; toast('⚽ Goal! ' + T.get(f.home).short + ' ' + f.hs + '–' + f.as + ' ' + T.get(f.away).short + (f.clock ? ' · ' + f.clock : '')); } }
+  renderChrome();
+  const ae = document.activeElement, typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+  const sheetOpen = !$('#sheet').hidden;
+  if (!(typing && !sheetOpen) && !S.busy) renderRoute();
+  if (sheetOpen && !(typing && $('#sheet').contains(ae))) { const top = sheet.stack[sheet.stack.length - 1]; if (top && /^(match|preview|club|player)$/.test(top.kind)) paintSheet(false); }
+}
+const lvLive = () => Object.values(LV.ev).filter(e => e.status === 'LIVE').length;
+function lvSoon(){ const now = Date.now(); return Object.values(LV.ev).some(e => e.ts && e.status !== 'FT' && e.ts - now < 15 * 6e4 && now - e.ts < 4 * 36e5); }
+function lvMonths(){
+  const now = new Date(), ym = d => d.getUTCFullYear() + String(d.getUTCMonth() + 1).padStart(2, '0'), set = new Set([ym(now)]);
+  const nx = Object.values(LV.ev).filter(e => e.status !== 'FT' && e.ts).sort((a, b) => a.ts - b.ts)[0]; if (nx) set.add(ym(new Date(nx.ts)));
+  return [...set].filter(m => LV_MONTHS.includes(m));
+}
+async function lvTick(full){
+  clearTimeout(LV.timer);
+  if (LV.busy) return lvSchedule();
+  if (document.hidden && LV.sig) return lvSchedule();
+  LV.busy = true;
+  try {
+    let months = full ? LV_MONTHS : lvMonths(); if (!months.length) months = full ? LV_MONTHS : [];
+    const res = await Promise.allSettled(months.map(m => lvGet(ESPN_SITE + 'scoreboard?dates=' + m)));
+    let all = months.length > 0, any = false;
+    res.forEach(r => { if (r.status === 'fulfilled' && r.value && Array.isArray(r.value.events)) { any = true; r.value.events.forEach(e => { const x = lvParse(e); if (x) LV.ev[x.eid] = x; }); } else all = false; });
+    if (full && all) LV.full = Date.now();
+    if (any) { LV.ok = true; LV.at = Date.now(); LV.fails = 0; } else if (months.length) LV.fails++;
+    const now = Date.now(), live = lvLive();
+    if (any || !months.length) {
+      const jobs = [];
+      if (full || now - LV.standAt > (live ? 6e4 : 10 * 6e4)) jobs.push(lvGet(ESPN_STAND).then(j => { const s = lvParseStand(j); if (s) { LV.stand = s; LV.standAt = now; } }).catch(() => {}));
+      if (full || now - LV.newsAt > 10 * 6e4) jobs.push(lvGet(ESPN_SITE + 'news?limit=50').then(j => { LV.news = lvParseNews(j); LV.newsAt = now; }).catch(() => {}));
+      await Promise.all(jobs);
+      if (LV.ok && !LV.sig) lvApply();       // first paint as soon as scores are in, before summaries
+      await lvSummaries();
+    }
+  } catch (e) { console.warn('live update failed', e); }
+  finally { LV.busy = false; }
+  if (LV.ok) lvApply();
+  lvSchedule();
+}
+function lvSchedule(){
+  clearTimeout(LV.timer);
+  let ms = lvLive() || lvSoon() ? 30e3 : 5 * 6e4; if (LV.fails > 1) ms = Math.min(15 * 6e4, ms * LV.fails);
+  LV.timer = setTimeout(() => lvTick(Date.now() - LV.full > 30 * 6e4), ms);
+}
+function lvWatch(fid){ const f = FX.get(fid); if (!f || !f.eid || !LV.ok) return; const fresh = LV.sums[f.eid]; if (f.status === 'LIVE') LV.want = new Set([f.eid]);
+  if (!fresh && !LV.baseM[fid] && !LV.loading) { LV.loading = f.eid; lvFetchSum(f.eid).then(() => { LV.loading = null; lvSaveCache(); lvApply(); }); } }
+function liveInit(){
+  if (LV.started || typeof fetch !== 'function' || window.ML_NO_LIVE || !window.UCL_DATA || !window.UCL_DATA.espn) return;
+  LV.started = true; LV.base = window.UCL_DATA; LV.baseM = Object.assign({}, LV.base.matches || {}); lvLoadCache();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - LV.at > 25e3 && !LV.busy) lvTick(Date.now() - LV.full > 30 * 6e4); });
+  lvTick(true);
+}
+window.__mlDebug = { get D(){ return D; }, LV, tick: f => lvTick(f), apply: () => { LV.sig = 'x'; lvApply(); } };
+function liveTag(f){ return '<span class="lv-tag"><i aria-hidden="true"></i>' + esc(f.clock || 'LIVE') + '</span>'; }
+
 function renderChrome(){
   const m = D.meta, nx = nextMdFixtures();
-  $('#hdr-meta').innerHTML = esc(m.season ? 'UCL ' + m.season : '') + (nx.md ? '<br><span style="color:var(--accent)">Next: MD' + nx.md + '</span>' : '');
-  $('#nav-foot').textContent = 'Unofficial fan app. Data as of ' + fmtDate(m.asOf) + '.';
-  $('#foot').innerHTML = '<p>Unofficial fan app · Not affiliated with UEFA · Data as of ' + esc(fmtDate(m.asOf)) + '</p>' + (m.sources.length ? '<ul aria-label="Sources">' + m.sources.map(s => '<li>' + (/^https?:\/\//i.test(s.url || '') ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.name) + '</a>' : esc(s.name)) + '</li>').join('') + '</ul>' : '');
+  const nLive = D.fixtures.filter(f => f.status === 'LIVE').length, upd = LV.ok ? new Date(LV.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+  $$('.nav a[data-route="home"]').forEach(a => { let d = a.querySelector('.nav-live'); if (nLive && !d) { d = document.createElement('i'); d.className = 'nav-live'; d.setAttribute('aria-label', nLive + ' live'); a.style.position = 'relative'; a.appendChild(d); } else if (!nLive && d) a.removeChild(d); });
+  $('#hdr-meta').innerHTML = nLive ? '<a href="#home" class="live-pill" style="text-decoration:none"><i></i>' + nLive + ' LIVE</a>' : esc(m.season ? 'UCL ' + m.season : '') + (nx.md ? '<br><span style="color:var(--accent)">Next: MD' + nx.md + '</span>' : '');
+  $('#nav-foot').textContent = LV.ok ? 'Unofficial fan app. Live data from ESPN, updated ' + upd + '.' : 'Unofficial fan app. Data as of ' + fmtDate(m.asOf) + '.';
+  $('#foot').innerHTML = '<p>Unofficial fan app · Not affiliated with UEFA · ' + (LV.ok ? 'Scores, line-ups, stats, table and news update automatically from ESPN’s public feed (last check ' + esc(upd) + '). If the feed is unavailable, the last verified data is shown.' : 'Data as of ' + esc(fmtDate(m.asOf))) + '</p>' + (m.sources.length ? '<ul aria-label="Sources">' + m.sources.map(s => '<li>' + (/^https?:\/\//i.test(s.url || '') ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.name) + '</a>' : esc(s.name)) + '</li>').join('') + '</ul>' : '');
 }
 function start(raw){
   if (!raw || typeof raw !== 'object') {
@@ -2224,6 +2499,7 @@ function start(raw){
   onHash();
   setInterval(() => { if (S.route === 'home' && !document.hidden) tickCountdown(); }, 1000);
   initMode();
+  liveInit();
 }
 if (window.UCL_DATA) start(window.UCL_DATA);
 else {
