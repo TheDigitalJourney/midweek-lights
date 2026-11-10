@@ -3010,6 +3010,8 @@ async function initMode(){
    The baked data is the verified fallback. Live data is merged on top; if ESPN is unreachable nothing changes. */
 const LV = { base: null, baseM: {}, ok: false, at: 0, ev: {}, sums: {}, stand: null, standAt: 0, news: null, newsAt: 0, timer: null, busy: false, full: 0, fails: 0, sig: '', lastRaw: null, want: new Set(), started: false };
 const ESPN_SITE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/';
+const ESPN_ROOT = 'https://site.api.espn.com/apis/site/v2/sports/soccer/';
+const LV_LEAGUES = ['eng.1', 'esp.1', 'ger.1', 'ita.1', 'fra.1', 'por.1', 'ned.1', 'tur.1', 'bel.1', 'aut.1', 'gre.1', 'cze.1', 'nor.1'];
 const ESPN_STAND = 'https://site.api.espn.com/apis/v2/sports/soccer/uefa.champions/standings';
 const LV_MONTHS = ['202609', '202610', '202611', '202612', '202701'];
 const LV_VER = 2;
@@ -3046,18 +3048,18 @@ function lvParseStand(j){
 function lvTag(head, desc){ const h = head.toLowerCase(), t = h + ' ' + String(desc || '').toLowerCase();
   if (/injur|sideline|ruled out|surgery|hamstring|ligament|knee|ankle|fitness doubt/.test(t)) return 'Injury';
   if (/transfer|signs |signing|loan move|contract|release clause/.test(h)) return 'Transfer';
-  if (/record|history|first time|makes history|unwanted/.test(h)) return 'Records';
+  if (/record|makes history|unwanted/.test(h)) return 'Records';
   if (/preview|ahead of|what to expect|predict/.test(h)) return 'Preview';
-  if (/what if|talking points|main characters|analysis|ratings|explained|why |how /.test(h)) return 'Analysis';
+  if (/what if|talking points|main characters|analysis|ratings|explained|overreactions|why |how |rise of/.test(h)) return 'Analysis';
   if (/ beat|beats|draw|win |wins|won |win over|defeat|thrash|stun|rout|comeback|rally|hold off|seal|score|double|recap|loss|haunts|bounce back|\d+-\d+|\d-goal/.test(h)) return 'Match report';
-  return 'Analysis'; }
+  return 'News'; }
 function lvParseNews(j){
   return ((j && j.articles) || []).map(a => {
     const teams = Array.from(new Set((a.categories || []).filter(c => c.type === 'team').map(c => lvTeam(c.teamId != null ? c.teamId : c.team && c.team.id)).filter(Boolean)));
     const url = a.links && a.links.web && a.links.web.href;
-    if (!a.headline || !url || !teams.length || a.type === 'Media') return null;
-    const pub = a.published || a.lastModified || '', cp = lvCet(pub);
-    return { id: 'espn-' + a.id, title: a.headline, summary: a.description || '', date: cp ? cp.date : String(pub).slice(0, 10), source: 'ESPN', url, tag: lvTag(a.headline, a.description), teamIds: teams, live: true };
+    if (!a.headline || !url || !teams.length) return null;
+    const pub = a.published || a.lastModified || '', cp = lvCet(pub), media = a.type === 'Media';
+    return { id: 'espn-' + a.id, title: a.headline, summary: a.description || '', date: cp ? cp.date : String(pub).slice(0, 10), ts: Date.parse(pub) || 0, source: media ? 'ESPN video' : 'ESPN', url, tag: media ? 'Video' : lvTag(a.headline, a.description), teamIds: teams, live: true };
   }).filter(Boolean);
 }
 /* ---- ESPN match summary -> app match format ---- */
@@ -3186,7 +3188,7 @@ function lvBuild(){
   if (LV.stand && LV.stand.reduce((a, s) => a + s.p, 0) >= played) raw.standings = LV.stand.map(s => Object.assign({}, s, { form: form[s.teamId] || [] }));
   else if (ft.length > (B.fixtures || []).filter(f => f.status === 'FT').length) raw.standings = calc;
   // news: ESPN stories first, de-duplicated
-  if (LV.news && LV.news.length) { const seen = new Set(); raw.news = LV.news.slice(0, 24).concat(raw.news || []).filter(n => { const k = fold(n.title); if ((n.url && seen.has(n.url)) || seen.has(k)) return false; if (n.url) seen.add(n.url); seen.add(k); return true; }).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 40); }
+  if (LV.news && LV.news.length) { const seen = new Set(); raw.news = LV.news.slice(0, 30).concat((raw.news || []).map(n => Object.assign({ ts: Date.parse(n.date + 'T12:00:00Z') || 0 }, n))).filter(n => { const k = fold(n.title); if ((n.url && seen.has(n.url)) || seen.has(k)) return false; if (n.url) seen.add(n.url); seen.add(k); return true; }).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 40); }
   const today = new Date(), p2 = n => String(n).padStart(2, '0');
   raw.meta.asOf = today.getFullYear() + '-' + p2(today.getMonth() + 1) + '-' + p2(today.getDate());
   raw.meta.nextMatchday = null; raw.meta.matchdaysPlayed = Math.max.apply(null, [0].concat(ft.map(f => f.md)));
@@ -3236,7 +3238,11 @@ async function lvTick(full){
     if (any || !months.length) {
       const jobs = [];
       if (full || now - LV.standAt > (live ? 6e4 : 10 * 6e4)) jobs.push(lvGet(ESPN_STAND).then(j => { const s = lvParseStand(j); if (s) { LV.stand = s; LV.standAt = now; } }).catch(() => {}));
-      if (full || now - LV.newsAt > 10 * 6e4) jobs.push(lvGet(ESPN_SITE + 'news?limit=50').then(j => { LV.news = lvParseNews(j); LV.newsAt = now; }).catch(() => {}));
+      if (full || now - LV.newsAt > 15 * 6e4) jobs.push(Promise.allSettled([ESPN_SITE + 'news?limit=50'].concat(LV_LEAGUES.map(l => ESPN_ROOT + l + '/news?limit=30')).map(u => lvGet(u))).then(rs => {
+        const seen = new Set(), all = [];
+        rs.forEach(r => { if (r.status === 'fulfilled') lvParseNews(r.value).forEach(n => { if (!seen.has(n.id)) { seen.add(n.id); all.push(n); } }); });
+        if (all.length) { LV.news = all.sort((a, b) => b.ts - a.ts).slice(0, 30); LV.newsAt = now; }
+      }).catch(() => {}));
       await Promise.all(jobs);
       if (LV.ok && !LV.sig) lvApply();       // first paint as soon as scores are in, before summaries
       await lvSummaries();
